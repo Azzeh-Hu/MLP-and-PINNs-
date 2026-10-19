@@ -494,7 +494,9 @@ for I_mA, I_A in zip(currents_mA, currents_A):
     np.savetxt(f"sensors_d03_I{I_mA}.csv", sensor_arr,
                delimiter=",", header=header, comments="")
 
-    coords_2d = msh.geometry.x[:, :2]
+    # DOF coordinates (not mesh-geometry nodes) so each T value is paired with
+    # its own (r, z) — DOLFINx does not guarantee the two orderings match
+    coords_2d = V.tabulate_dof_coordinates()[:, :2]
     for t_snap, field in field_snapshots.items():
         out = np.column_stack([coords_2d, field])
         np.savetxt(f"field_d03_I{I_mA}_t{t_snap}s.csv", out,
