@@ -41,9 +41,14 @@ time ρ cp R²/(4k)), appropriate here because Bi ≪ 1.
 
 Time domain
 -----------
-t_final = 40 s ≥ 6τ for every current in the sweep (τ = 5.6–6.7 s), so the
-midpoint reaches ≥ 99.7 % of its steady-state rise. τ is independent of L,
-so this holds for any wire length.
+Heating–cooling cycle, t_final = 60 s:
+  0 ≤ t ≤ t_off = 30 s : current on  (Q = I²ρ_e/A²)
+  t_off < t ≤ 60 s      : current off (Q = 0), wire cools back towards T∞
+t_off = 30 s ≥ 4.5τ for every current in the sweep (τ = 5.6–6.7 s), so the
+midpoint reaches ≥ 98.9 % of its steady-state rise before switch-off, and the
+30 s cooling phase is long enough to return within ~1 % of T∞. τ is
+independent of L, so this holds for any wire length.
+"Steady-state" checks (symmetry, analytical slope) use T at t = t_off.
 
 Exposé notes (to be incorporated into §4 / §6.1):
 - Eq. for h: Churchill–Chu above → add as Eq. in §4 or new §4.6
@@ -85,7 +90,8 @@ rho_e = 0.82e-6        # electrical resistivity (Ω·m) — austenite phase
 T_inf = 295.15         # ambient temperature (K) — 22 °C lab condition
 T_0   = 295.15         # initial temperature (K) — uniform, equals T_inf
 
-t_final = 40.0         # simulation duration (s) — ≥ 6τ for all currents
+t_final = 60.0         # simulation duration (s) — heating + cooling
+t_off   = 30.0         # current switched off at this time (s) — ≥ 4.5τ for all currents
 dt      = 1.0          # timestep (s)
 
 # Transformation temperatures (literature estimates; replace with DSC values †)
@@ -427,8 +433,8 @@ for I_mA, I_A in zip(currents_mA, currents_A):
 
     T_h = Function(V)
 
-    # Snapshot times: τ/4, τ, 3τ  (same multiples shown in figures)
-    snap_multiples = [0.25, 1.0, 3.0]
+    # Snapshot times: τ/4, τ, 3τ, 4τ  (same multiples shown in figures)
+    snap_multiples = [0.25, 1.0, 3.0, 4.0]
     snap_times     = [s * tau_i for s in snap_multiples]
 
     problem = LinearProblem(
@@ -437,7 +443,11 @@ for I_mA, I_A in zip(currents_mA, currents_A):
         petsc_options={"ksp_type": "preonly", "pc_type": "lu"},
     )
 
+    T_off_check = None   # (T_left, T_right, T_mid) captured at t = t_off
+
     for t in times[1:]:
+        # Current on for the step ending at t ≤ t_off, off afterwards
+        Q_const.value = Q_joule if t <= t_off + 1e-9 else 0.0
         problem.solve()
         T_n.x.array[:] = T_h.x.array
 
@@ -452,14 +462,19 @@ for I_mA, I_A in zip(currents_mA, currents_A):
             if np.isclose(t, t_snap, atol=dt / 2):
                 field_snapshots[round(t)] = T_h.x.array.copy()
 
+        # End of heating: values for the steady-state checks below
+        if np.isclose(t, t_off, atol=dt / 2):
+            T_off_check = (eval_point(T_h, 0.0, Lb_i),
+                           eval_point(T_h, 0.0, L - Lb_i),
+                           eval_point(T_h, 0.0, L / 2))
+
     # ── Symmetry check — Fig 6 validation ─────────────────────────────────────
     # For a uniform-Q, uniform-h, symmetric-Dirichlet problem, T must satisfy
     #   T(z = L_b) = T(z = L − L_b)
-    # at steady state (t = t_final ≥ 4.8τ, fully converged for this problem).
+    # at steady state (t = t_off ≥ 4.5τ, end of the heating phase).
     # Failure indicates mesh asymmetry or solver issue.
-    print(f"\n    [SYMMETRY CHECK — Fig 6 validation]")
-    T_left  = eval_point(T_h, 0.0, Lb_i)
-    T_right = eval_point(T_h, 0.0, L - Lb_i)
+    print(f"\n    [SYMMETRY CHECK — Fig 6 validation, t = t_off = {t_off:.0f} s]")
+    T_left, T_right, T_mid_off = T_off_check or (None, None, None)
     if T_left is not None and T_right is not None:
         diff = abs(T_left - T_right)
         status = "PASS ✓" if diff < 0.01 else "FAIL ✗ — check mesh or BCs"
@@ -478,11 +493,11 @@ for I_mA, I_A in zip(currents_mA, currents_A):
     #            Extended Surfaces chapter (fin with uniform heat generation).
     print(f"\n    [ANALYTICAL SLOPE CHECK — Fig 7 validation]")
     dT_analytical = Q_joule * R / (2.0 * h_conv)
-    T_fem_mid     = sensor_data[1][-1][1] - T_inf if sensor_data[1] else None
+    T_fem_mid     = T_mid_off - T_inf if T_mid_off is not None else None
     if T_fem_mid is not None:
         err_pct = 100.0 * abs(T_fem_mid - dT_analytical) / dT_analytical
         print(f"    ΔT_analytical (fin, mL/2>>1) = {dT_analytical:.2f} °C")
-        print(f"    ΔT_FEM (sensor s1, t=t_final) = {T_fem_mid:.2f} °C")
+        print(f"    ΔT_FEM (r=0, z=L/2, t=t_off)  = {T_fem_mid:.2f} °C")
         print(f"    Relative error               = {err_pct:.1f}%")
         status_a = "PASS ✓" if err_pct < 10.0 else "NOTE: >10% — check convergence"
         print(f"    Status: {status_a}")
@@ -510,7 +525,10 @@ for I_mA, I_A in zip(currents_mA, currents_A):
         np.savetxt(os.path.join(DATA_DIR, f"field_d03_I{I_mA}_t{t_snap}s.csv"), out,
                    delimiter=",", header="r(m),z(m),T(K)", comments="")
 
+    T_mid_off_str = (f"{T_mid_off - 273.15:.2f} °C" if T_mid_off is not None
+                     else "n/a")
     print(f"\n    Done: I = {I_mA} mA | "
+          f"T_midpoint(t_off={t_off:.0f}s) = {T_mid_off_str} | "
           f"T_midpoint(t={t_final:.0f}s) = "
           f"{sensor_data[1][-1][1] - 273.15:.2f} °C\n")
 
@@ -524,7 +542,8 @@ FORMATTING INCONSISTENCIES TO FIX IN EXPOSÉ:
 ─────────────────────────────────────────────
 1. Axial coordinate: exposé Eq.1, Eq.13, all BCs use 'x'; figures and code use 'z'.
    Standardise to z everywhere in §4.1, §4.2, §4.3, and all equation labels.
-   Domain statement becomes: Ω = [0, L] × [0, R] × [0, t_final]   (z, r, t).
+   Domain statement becomes: Ω = [0, L] × [0, R] × [0, t_final]   (z, r, t),
+   with the current switched off at t_off = 30 s (t_final = 60 s).
 
 2. h = 15 W/(m²·K) appears in Fig 1 and Fig 7 supertitles. Replace with
    "h = f(I), 62–74 W/(m²·K), Churchill–Chu (1975)" after rerunning simulations.
