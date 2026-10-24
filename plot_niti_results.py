@@ -24,19 +24,21 @@ Fig 2:
   (a) Thermal time constant: τ = ρ cp R / (2h), the lumped-capacitance time
       constant for Bi ≪ 1. Numerical values vary with current because h
       depends on ΔT via the Churchill–Chu correlation; see TAU_DICT below.
-  (b) End-cooling length: L_b = √(kR/2h). Corrected range 4.1–4.9 mm
+  (b) End-cooling length: L_b = √(kR/2h). Corrected range 4.3–4.7 mm
       (replaces earlier estimate of 9.5 mm based on h = 15 W/(m²·K)).
-  (c) At 350 mA, T_ss approaches A_f = 110 °C. The absence of a latent-heat
-      plateau is the expected consequence of the constant-cp (linear) assumption
+  (c) Sweep 0.5–1.1 A: T_ss ≈ 70 °C (0.5 A, above A_s), ≈ A_f at 0.7 A, and
+      well above A_f at 0.9–1.1 A, so the wire passes fully into austenite.
+      The absence of a latent-heat plateau where the curves cross A_s–A_f
+      is the expected consequence of the constant-cp (linear) assumption
       in Approach 1 and quantifies the domain of validity of the linear baseline.
       This motivates Approach 2 (apparent heat capacity, Paper 2).
 
 Fig 3:
-  ΔT_radial = T(r=0) − T(r=R) = 5–20 mK for d = 0.3 mm. This is below the
+  ΔT_radial = T(r=0) − T(r=R) ≈ 10–60 mK for d = 0.3 mm. This is below the
   noise floor of K-type fine-gauge thermocouples (±0.5–1 K), so radial
   gradients are experimentally undetectable at this diameter. The 2D PINN
   architecture is nonetheless retained because (i) ΔT_radial ∝ R², so at
-  d = 3 mm it scales to ~500 mK (measurable and physically significant), and
+  d = 3 mm it scales ×100 to ~1–6 K (measurable and significant), and
   (ii) the same trained 2D architecture generalises to larger diameters without
   retraining — a methodological advantage over a 1D FEM approach.
 
@@ -132,7 +134,8 @@ T_INF = 295.15         # ambient (K)
 AS_C  = 60.0           # As ≈ 60 °C   (literature estimate; replace with DSC)
 AF_C  = 110.0          # Af ≈ 110 °C  (literature estimate; replace with DSC)
 
-CURRENTS = [150, 200, 250, 300, 350]    # mA
+CURRENTS = [500, 700, 900, 1100]        # mA  — must match niti_wire_fem.py
+I_NOM    = 700                          # nominal current for single-value labels
 
 # ── Per-current h, τ, L_b  (Churchill–Chu, iterated) ─────────────────────────
 # These reproduce the values printed by niti_wire_fem.py.
@@ -149,11 +152,11 @@ CURRENTS = [150, 200, 250, 300, 350]    # mA
 #            Incropera & DeWitt, Fundamentals of Heat and Mass Transfer, §9.4.
 
 def air_properties(T_film_C):
-    T_tab  = np.array([20,      40,      60,      80,      100   ])
-    k_tab  = np.array([0.02551, 0.02756, 0.02966, 0.03047, 0.03095])
-    nu_tab = np.array([15.11,   16.97,   18.97,   20.92,   23.02 ]) * 1e-6
-    al_tab = np.array([21.40,   24.02,   26.92,   29.85,   32.80 ]) * 1e-6
-    Pr_tab = np.array([0.7290,  0.7255,  0.7202,  0.7154,  0.7111])
+    T_tab  = np.array([20,      40,      60,      80,      100,     120,     140,     160    ])
+    k_tab  = np.array([0.02551, 0.02756, 0.02966, 0.03047, 0.03095, 0.03235, 0.03374, 0.03511])
+    nu_tab = np.array([15.11,   16.97,   18.97,   20.92,   23.02,   25.22,   27.40,   29.65  ]) * 1e-6
+    al_tab = np.array([21.40,   24.02,   26.92,   29.85,   32.80,   35.65,   38.76,   41.91  ]) * 1e-6
+    Pr_tab = np.array([0.7290,  0.7255,  0.7202,  0.7154,  0.7111,  0.7073,  0.7041,  0.7014 ])
     T_film_C = np.clip(T_film_C, T_tab[0], T_tab[-1])
     return (np.interp(T_film_C, T_tab, k_tab),
             np.interp(T_film_C, T_tab, nu_tab),
@@ -186,6 +189,7 @@ H_DICT   = {}
 TAU_DICT = {}
 LB_DICT  = {}
 DT_DICT  = {}    # estimated ΔT_ss per current
+DTRAD_DICT = {}  # radial ΔT = Q R² / (4k) per current  [K]
 
 for I in CURRENTS:
     h_i, tau_i, Lb_i, dT_i = compute_h(I)
@@ -193,14 +197,19 @@ for I in CURRENTS:
     TAU_DICT[I] = tau_i
     LB_DICT[I]  = Lb_i
     DT_DICT[I]  = dT_i
+    Q_i = (I * 1e-3)**2 * rho_e / (np.pi * R**2)**2
+    DTRAD_DICT[I] = Q_i * R**2 / (4.0 * k)
+
+DTRAD_STR = (f'{min(DTRAD_DICT.values())*1e3:.0f}–'
+             f'{max(DTRAD_DICT.values())*1e3:.0f} mK')
 
 # Reference h_nom for single-h figures (Fig 1 title)
-H_NOM   = H_DICT[250]
-TAU_NOM = TAU_DICT[250]
+H_NOM   = H_DICT[I_NOM]
+TAU_NOM = TAU_DICT[I_NOM]
 
 # ── Discover snapshot times from files actually written by the FEM ─────────────
 # The FEM saves field_d03_I{I}_{t}s.csv at the timestep closest to τ/4, τ, 3τ
-# for each current. Because τ varies per current (4.2–4.9 s), snapshot times
+# for each current. Because τ varies per current (5.6–6.7 s), snapshot times
 # differ slightly across currents. We discover the available times from disk
 # and pick the three that are closest to the τ/4, τ, 3τ multiples of TAU_NOM.
 
@@ -231,9 +240,9 @@ for I in CURRENTS:
     chosen    = [min(available, key=lambda t: abs(t - tgt)) for tgt in targets]
     SNAP_T_PER_I[I] = chosen
 
-# Shared SNAP_T for plot layout: use 250 mA times as the canonical row labels.
+# Shared SNAP_T for plot layout: use I_NOM times as the canonical row labels.
 # All currents will use their own closest time internally.
-SNAP_T     = SNAP_T_PER_I[250]
+SNAP_T     = SNAP_T_PER_I[I_NOM]
 SNAP_LABEL = [f't = {SNAP_T[0]} s  (τ/4)',
               f't = {SNAP_T[1]} s  (τ)',
               f't = {SNAP_T[2]} s  (3τ)']
@@ -253,8 +262,9 @@ for I in CURRENTS:
 print()
 
 # Colour palette and helpers
-COLORS   = plt.cm.plasma(np.linspace(0.15, 0.85, 5))
-C_LABELS = [f'{I} mA' for I in CURRENTS]
+N_I      = len(CURRENTS)
+COLORS   = plt.cm.plasma(np.linspace(0.15, 0.85, N_I))
+C_LABELS = [f'{I/1000:g} A' for I in CURRENTS]
 K2C      = lambda T: T - 273.15
 
 
@@ -301,15 +311,15 @@ SENS = {I: np.loadtxt(data_path(f'sensors_d03_I{I}.csv'),
 # Simulation end time, taken from the data rather than hard-coded
 T_FINAL = max(SENS[I][-1, 0] for I in CURRENTS)
 
-print(f"Loaded sensor data.  τ_nom (250 mA) = {TAU_NOM:.1f} s,  "
+print(f"Loaded sensor data.  τ_nom ({I_NOM} mA) = {TAU_NOM:.1f} s,  "
       f"t_final = {T_FINAL:.0f} s\n")
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  FIG 1 — 2D Temperature Fields  (3 snapshots × 5 currents)
+#  FIG 1 — 2D Temperature Fields  (3 snapshots × N_I currents)
 # ══════════════════════════════════════════════════════════════════════════════
-print("Fig 1: 2D fields (3 × 5 grid)...")
+print(f"Fig 1: 2D fields (3 × {N_I} grid)...")
 
-fig1, axes1 = plt.subplots(3, 5, figsize=(18, 6.5),
+fig1, axes1 = plt.subplots(3, N_I, figsize=(3.6 * N_I, 6.5),
                             gridspec_kw={'hspace': 0.45, 'wspace': 0.06})
 
 r_g = np.linspace(0, R, 60)
@@ -325,8 +335,9 @@ for row, (snap_idx, t_lbl) in enumerate(zip([0, 1, 2], SNAP_LABEL)):
         grids.append(Tg)
         all_T.append(T)
     T_cat = np.concatenate(all_T)
-    vmin  = K2C(np.nanpercentile(T_cat, 1))
-    vmax  = K2C(np.nanpercentile(T_cat, 99))
+    # Full range so the hottest current does not saturate (0.5–1.1 A spans ~200 K)
+    vmin  = K2C(np.nanmin(T_cat))
+    vmax  = K2C(np.nanmax(T_cat))
     lvls  = np.linspace(vmin, vmax, 22)
 
     for col, (I, Tg, clr, clbl) in enumerate(
@@ -370,12 +381,12 @@ leg_els = [
     Line2D([0],[0], color='lime', lw=1.2, ls='--', label=f'Aᶠ = {AF_C:.0f}°C'),
 ]
 fig1.legend(handles=leg_els, loc='upper center',
-            bbox_to_anchor=(0.45, 1.04), ncol=2, fontsize=8)
+            bbox_to_anchor=(0.45, 0.965), ncol=2, fontsize=8)
 fig1.suptitle(
     f'2D Temperature Field  T(r, z)  —  d = 0.3 mm\n'
     f'h = f(I): {min(H_DICT.values()):.0f}–{max(H_DICT.values()):.0f} W/(m²·K)  '
     f'(Churchill–Chu 1975)  |  Rows: time snapshots  |  Columns: applied current',
-    fontsize=10, fontweight='bold', y=1.07)
+    fontsize=10, fontweight='bold', y=1.04)
 
 fig1.savefig(fig_path('fig1_2D_fields.png'), bbox_inches='tight')
 plt.close(fig1)
@@ -389,16 +400,16 @@ print("  → results/figures/fig1_2D_fields.png")
 #
 #  FIGURE NOTES (add to paper caption — see module docstring for full text):
 #  (a) τ = ρ cp R / (2h)  [lumped-capacitance, Bi≪1].
-#      Values: 150 mA → τ≈{:.1f}s, ..., 350 mA → τ≈{:.1f}s.
-#      Snapshot times shown use τ for the 250 mA nominal case.
+#      Values per current: see TAU_DICT (printed at start of run).
+#      Snapshot times shown use τ for the I_NOM nominal case.
 #  (b) L_b = √(kR/2h): corrected range {:.1f}–{:.1f} mm.
-#      Dotted verticals mark L_b and L−L_b for nominal h (250 mA).
-#  (c) At 350 mA, T_ss ≈ Af = 110 °C. No latent-heat plateau visible:
+#      Dotted verticals mark L_b and L−L_b for nominal h (I_NOM).
+#  (c) 0.7 A reaches ≈ Af; 0.9–1.1 A exceed Af. No latent-heat plateau visible:
 #      expected consequence of constant-cp Approach 1 (Gap 3).
 # ══════════════════════════════════════════════════════════════════════════════
 print("Fig 2: Axial centreline profiles...")
 
-LB_NOM = LB_DICT[250]     # nominal L_b for dotted verticals
+LB_NOM = LB_DICT[I_NOM]   # nominal L_b for dotted verticals
 tau_min = min(TAU_DICT.values())
 tau_max = max(TAU_DICT.values())
 Lb_min  = min(LB_DICT.values()) * 1e3
@@ -420,16 +431,16 @@ for col, (snap_idx, t_lbl) in enumerate(zip([0, 1, 2], SNAP_LABEL)):
     ax.text(L*1e3 + 0.5, AF_C, 'Aᶠ', fontsize=7.5, color='firebrick',
             va='center', clip_on=False)
 
-    # End-cooling markers — use nominal (250 mA) L_b
+    # End-cooling markers — use nominal (I_NOM) L_b
     ax.axvline(LB_NOM * 1e3, color='k', lw=0.7, ls=':', alpha=0.5)
     ax.axvline((L - LB_NOM) * 1e3, color='k', lw=0.7, ls=':', alpha=0.5)
 
-    # Annotation: absent plateau note at 350 mA in final snapshot only
+    # Annotation: absent plateau where the curves cross Af, final snapshot only
     if col == 2:
         ax.annotate(
             'No latent-heat plateau\n(constant cₚ, Approach 1)',
-            xy=(L/2 * 1e3, AF_C - 2),
-            xytext=(35, AF_C - 18),
+            xy=(L/2 * 1e3, AF_C),
+            xytext=(30, (AS_C + AF_C) / 2 - 5),
             fontsize=7, color='firebrick', alpha=0.85,
             arrowprops=dict(arrowstyle='->', color='firebrick', lw=0.7)
         )
@@ -444,22 +455,22 @@ for col, (snap_idx, t_lbl) in enumerate(zip([0, 1, 2], SNAP_LABEL)):
 
 # Build τ info string for each current
 tau_str = "  |  ".join(
-    [f'{I} mA: τ = {TAU_DICT[I]:.1f} s' for I in CURRENTS])
+    [f'{I/1000:g} A: τ = {TAU_DICT[I]:.1f} s' for I in CURRENTS])
 
 fig2.suptitle(
     f'Axial Centreline Profile  T(z, r = 0)  —  d = 0.3 mm  '
     f'[Flexinol HT 0.012", binary NiTi]\n'
     f'Dotted verticals: L_b = √(kR/2h) ≈ {Lb_min:.1f}–{Lb_max:.1f} mm  '
-    f'(Churchill–Chu h, 250 mA shown)     '
+    f'(Churchill–Chu h, {I_NOM/1000:g} A shown)     '
     f'τ = ρ cₚ R / (2h): {tau_min:.1f}–{tau_max:.1f} s across sweep',
     fontsize=10, fontweight='bold')
 
 # Secondary note line (add to paper caption)
 fig2.text(0.5, -0.04,
     'Caption note: (a) τ defined as lumped-capacitance constant ρcₚR/(2h), Bi≪1. '
-    'Per-current τ: ' + ', '.join([f'{I} mA→{TAU_DICT[I]:.1f}s' for I in CURRENTS])
+    'Per-current τ: ' + ', '.join([f'{I/1000:g} A→{TAU_DICT[I]:.1f}s' for I in CURRENTS])
     + '.  (b) L_b corrected range shown above; earlier h=15 estimate gave 9.5 mm (factor ~2 error).  '
-    '(c) Absent latent-heat plateau at 350 mA is Gap 3 evidence — motivates Approach 2 (Paper 2).',
+    '(c) Absent latent-heat plateau across Aₛ–Aᶠ (0.7–1.1 A) is Gap 3 evidence — motivates Approach 2 (Paper 2).',
     ha='center', fontsize=6.5, color='#555555', style='italic',
     wrap=True)
 
@@ -480,7 +491,7 @@ print("  → results/figures/fig2_axial_centreline.png")
 # ══════════════════════════════════════════════════════════════════════════════
 print("Fig 3: Centreline vs surface (radial ΔT)...")
 
-t_snap_3tau = SNAP_T[2]   # 3τ snapshot — 250 mA nominal for label only
+t_snap_3tau = SNAP_T[2]   # 3τ snapshot — I_NOM nominal for label only
 
 fig3, (ax3a, ax3b) = plt.subplots(1, 2, figsize=(13, 4.5))
 
@@ -514,14 +525,14 @@ ax3b.set_ylabel('ΔT = T(r=0) − T(r=R)  (mK)')
 # Corrected subtitle — see docstring and exposé note item 9
 ax3b.set_title(
     'Radial non-uniformity  ΔT_radial  at t = 3τ\n'
-    'ΔT = QR²/4k ≈ 5–20 mK at d=0.3 mm  '
+    f'ΔT = QR²/4k ≈ {DTRAD_STR} at d=0.3 mm  '
     '(sub-thermocouple; scales ×100 at d=3 mm)',
     fontsize=9)
 ax3b.legend(fontsize=8.5)
 
 # Add Bi and scaling note as text box
 ax3b.text(0.02, 0.97,
-    f'Bi = hR/k ≈ {H_DICT[250]*R/k:.1e} ≪ 1\n'
+    f'Bi = hR/k ≈ {H_NOM*R/k:.1e} ≪ 1\n'
     'Radial variation below K-type TC resolution (±0.5 K)\n'
     '2D architecture retained: generalises to d=3 mm (×100 ΔT)',
     transform=ax3b.transAxes,
@@ -560,10 +571,10 @@ for col, (s_col, s_title) in enumerate(SENSOR_PANELS):
     ax.axhline(AF_C, color='firebrick', lw=0.9, ls='--', alpha=0.75,
                label=f'Aᶠ = {AF_C:.0f}°C')
 
-    # τ marker lines — use per-current τ (nominal 250 mA shown as label)
+    # τ marker lines — nominal current (I_NOM) τ
     y0 = K2C(T_INF) + 0.5
     for mult, lbl in [(1, 'τ'), (2, '2τ'), (3, '3τ')]:
-        t_line = mult * TAU_DICT[250]
+        t_line = mult * TAU_NOM
         ax.axvline(t_line, color='grey', lw=0.7, ls=':', alpha=0.5)
         ax.text(t_line + 0.8, y0, lbl, fontsize=7, color='grey')
 
@@ -578,7 +589,7 @@ for col, (s_col, s_title) in enumerate(SENSOR_PANELS):
 fig4.suptitle(
     'Virtual Sensor Heating Curves  T(t)  —  d = 0.3 mm  [Flexinol HT 0.012"]\n'
     'These time series are the PINN training input  '
-    f'(τ markers at 250 mA nominal: τ = {TAU_DICT[250]:.1f} s)',
+    f'(τ markers at {I_NOM/1000:g} A nominal: τ = {TAU_NOM:.1f} s)',
     fontsize=11, fontweight='bold')
 fig4.tight_layout()
 fig4.savefig(fig_path('fig4_sensor_curves.png'), bbox_inches='tight')
@@ -602,12 +613,12 @@ ax5.axhline(AS_C, color='steelblue', lw=0.9, ls='--',
 ax5.axhline(AF_C, color='firebrick', lw=0.9, ls='--',
             alpha=0.75, label=f'Aᶠ = {AF_C:.0f}°C')
 
-# Note on 350 mA coincidence with Af
+# Note on where the sweep sits relative to the transformation window
 ax5.text(0.02, 0.97,
-    f'350 mA curve at {AF_C}°C coincides with Aᶠ numerically.\n'
-    'This is a fortuitous coincidence of the steady-state\n'
-    'temperature at this current — not a latent-heat artefact.\n'
-    f'Constant-cₚ model has no phase physics.',
+    f'{CURRENTS[0]/1000:g} A sits between Aₛ and Aᶠ; higher currents reach or\n'
+    'exceed Aᶠ (full austenite). Curves pass through Aₛ–Aᶠ\n'
+    'without a latent-heat plateau: the constant-cₚ model\n'
+    'has no phase physics.',
     transform=ax5.transAxes,
     fontsize=7, va='top', ha='left',
     bbox=dict(boxstyle='round,pad=0.3', facecolor='lightyellow',
@@ -617,8 +628,8 @@ ax5.set_xlabel('r  (µm)')
 ax5.set_ylabel('T  (°C)')
 ax5.set_title(
     f'Radial Profile  T(r,  z = L/2)  at  t = 3τ\n'
-    f'ΔT_radial = QR²/4k ≈ 5–20 mK  '
-    f'(Bi = hR/k ≈ {H_DICT[250]*R/k:.0e} ≪ 1)',
+    f'ΔT_radial = QR²/4k ≈ {DTRAD_STR}  '
+    f'(Bi = hR/k ≈ {H_NOM*R/k:.0e} ≪ 1)',
     fontsize=10)
 ax5.set_xlim(0, R * 1e6 * 1.05)
 ax5.legend(fontsize=8.5, loc='upper right')
@@ -643,8 +654,8 @@ for I, clr, clbl in zip(CURRENTS, COLORS, C_LABELS):
     ax6L.plot(z * 1e3, K2C(T), color=clr, lw=1.8, label=clbl)
     ax6R.plot(z * 1e3, K2C(T), color=clr, lw=1.8)
 
-# Use per-current L_b for annotation range; nominal 250 mA for the dotted line
-Lb_nom_mm = LB_DICT[250] * 1e3
+# Use per-current L_b for annotation range; nominal I_NOM for the dotted line
+Lb_nom_mm = LB_NOM * 1e3
 
 for ax, xlim, vline_x, side in [
     (ax6L, (0,  30), Lb_nom_mm,           'Left'),
@@ -656,7 +667,7 @@ for ax, xlim, vline_x, side in [
     ax.set_ylabel('T  (°C)')
     ax.set_title(f'{side} end  (z ∈ [{xlim[0]}, {xlim[1]}] mm)')
     ax.annotate(
-        f'L_b ≈ {Lb_nom_mm:.1f} mm\n(250 mA nominal)',
+        f'L_b ≈ {Lb_nom_mm:.1f} mm\n({I_NOM/1000:g} A nominal)',
         xy=(vline_x, AS_C - 25),
         xytext=(vline_x + 0.8, AS_C - 22),
         fontsize=7, color='k', alpha=0.8,
@@ -832,7 +843,7 @@ ax8.text(T_FINAL + 0.5, AF_C, 'Aᶠ', fontsize=8, color='firebrick',
 
 y0 = K2C(T_INF) + 0.8
 for mult, lbl in [(1, 'τ'), (2, '2τ'), (3, '3τ')]:
-    t_line = mult * TAU_DICT[250]
+    t_line = mult * TAU_NOM
     ax8.axvline(t_line, color='grey', lw=0.8, ls=':', alpha=0.5)
     ax8.text(t_line + 0.5, y0, lbl, fontsize=7.5, color='grey')
 
@@ -841,7 +852,7 @@ ax8.set_ylabel('T  (°C)', fontsize=11)
 ax8.set_xlim(0, T_FINAL)
 ax8.set_title(
     'Heating Curves at Centreline Midpoint  (r = 0,  z = L/2)  —  d = 0.3 mm\n'
-    'PINN must generalise across all five curves from ≤ 3 sensor readings\n'
+    f'PINN must generalise across all {N_I} curves from ≤ 3 sensor readings\n'
     '[DIAGNOSTIC — not for publication: no new information beyond Fig 4 left panel]',
     fontsize=9.5)
 ax8.legend(loc='upper left', fontsize=9.5)
@@ -865,7 +876,7 @@ print("\n" + "═" * 62)
 print(f"  All 8 figures saved to {FIG_DIR}")
 print("═" * 62)
 fig_names = [
-    ("1", "fig1_2D_fields.png",            "2D T(r,z) — 3×5 grid"),
+    ("1", "fig1_2D_fields.png",            f"2D T(r,z) — 3×{N_I} grid"),
     ("2", "fig2_axial_centreline.png",      "Axial centreline profiles"),
     ("3", "fig3_centreline_vs_surface.png", "Centreline vs surface + ΔT_radial"),
     ("4", "fig4_sensor_curves.png",         "Virtual sensor heating curves"),
