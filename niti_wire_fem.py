@@ -55,6 +55,7 @@ Exposé notes (to be incorporated into §4 / §6.1):
   Eq. 1, Eq. 13, and all BC statements before submission.
 """
 
+import os
 import numpy as np
 from mpi4py import MPI
 from dolfinx import mesh, fem, io
@@ -90,6 +91,12 @@ dt      = 1.0          # timestep (s)
 # Transformation temperatures (literature estimates; replace with DSC values †)
 AS_K = 333.15          # As ≈ 60 °C in K
 AF_K = 383.15          # Af ≈ 110 °C in K
+
+# Output folder for exported CSVs (sensor time series + field snapshots).
+# plot_niti_results.py reads from the same location.
+DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                        "results", "data")
+os.makedirs(DATA_DIR, exist_ok=True)
 
 currents_mA = [150, 200, 250, 300, 350]          # parametric sweep (mA)
 currents_A  = [I * 1e-3 for I in currents_mA]   # in amperes
@@ -491,13 +498,13 @@ for I_mA, I_A in zip(currents_mA, currents_A):
         [row[0]] + [sensor_data[i][j][1] for i in range(len(sensor_coords))]
         for j, row in enumerate(sensor_data[0])
     ])
-    np.savetxt(f"sensors_d03_I{I_mA}.csv", sensor_arr,
+    np.savetxt(os.path.join(DATA_DIR, f"sensors_d03_I{I_mA}.csv"), sensor_arr,
                delimiter=",", header=header, comments="")
 
     coords_2d = msh.geometry.x[:, :2]
     for t_snap, field in field_snapshots.items():
         out = np.column_stack([coords_2d, field])
-        np.savetxt(f"field_d03_I{I_mA}_t{t_snap}s.csv", out,
+        np.savetxt(os.path.join(DATA_DIR, f"field_d03_I{I_mA}_t{t_snap}s.csv"), out,
                    delimiter=",", header="r(m),z(m),T(K)", comments="")
 
     print(f"\n    Done: I = {I_mA} mA | "

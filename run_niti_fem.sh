@@ -7,6 +7,7 @@
 #   ./run_niti_fem.sh --shell         # only open a shell inside the env, don't run
 #   NP=4 ./run_niti_fem.sh            # run in parallel with 4 MPI processes
 #
+# Exported CSVs go to results/data/ and figures to results/figures/.
 # After the run you are left in an interactive shell with the env still active,
 # so you can re-run with:  python niti_wire_fem.py
 
@@ -100,6 +101,12 @@ if [ "$SHELL_ONLY" -eq 0 ]; then
     STATUS=$?
     echo "────────────────────────────────────────────────────────────"
     echo "Finished with exit code $STATUS"
+
+    # Make the figures from the exported data (results/data → results/figures)
+    if [ "$STATUS" -eq 0 ] && [ -f plot_niti_results.py ]; then
+        echo "Creating figures with plot_niti_results.py ..."
+        python plot_niti_results.py
+    fi
 fi
 
 # ── 5. Stay in an interactive shell with the env still active ────────────────
