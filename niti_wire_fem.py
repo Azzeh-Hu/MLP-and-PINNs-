@@ -41,15 +41,15 @@ time ρ cp R²/(4k)), appropriate here because Bi ≪ 1.
 
 Time domain
 -----------
-t_final = 40 s ≥ 4.8τ for every current in the sweep (τ = 7.2–8.4 s), so the
-midpoint reaches ≥ 99.2 % of its steady-state rise. τ is independent of L,
+t_final = 40 s ≥ 6τ for every current in the sweep (τ = 5.6–6.7 s), so the
+midpoint reaches ≥ 99.7 % of its steady-state rise. τ is independent of L,
 so this holds for any wire length.
 
 Exposé notes (to be incorporated into §4 / §6.1):
 - Eq. for h: Churchill–Chu above → add as Eq. in §4 or new §4.6
 - Eq. for τ = ρ cp R / (2h) → add to §4.1 or caption note
 - Eq. for L_b = √(kR/2h) with numerical evaluation per h → add to §4.1
-- Bi = hR/k ≈ 5×10⁻⁴ ≪ 1 → two-sentence paragraph in §4.3
+- Bi = hR/k ≈ 5–6×10⁻⁴ ≪ 1 → two-sentence paragraph in §4.3
 - Coordinate notation: all equations in exposé use x for axial;
   figures and code use z. Standardise to z throughout §4.1, §4.2, §4.3,
   Eq. 1, Eq. 13, and all BC statements before submission.
@@ -85,7 +85,7 @@ rho_e = 0.82e-6        # electrical resistivity (Ω·m) — austenite phase
 T_inf = 295.15         # ambient temperature (K) — 22 °C lab condition
 T_0   = 295.15         # initial temperature (K) — uniform, equals T_inf
 
-t_final = 40.0         # simulation duration (s) — ≥ 4.8τ for all currents
+t_final = 40.0         # simulation duration (s) — ≥ 6τ for all currents
 dt      = 1.0          # timestep (s)
 
 # Transformation temperatures (literature estimates; replace with DSC values †)
@@ -98,7 +98,10 @@ DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                         "results", "data")
 os.makedirs(DATA_DIR, exist_ok=True)
 
-currents_mA = [150, 200, 250, 300, 350]          # parametric sweep (mA)
+# Sweep chosen so the wire reaches/passes Af (full austenite) at steady state:
+#   0.5 A → T_ss ≈ 70 °C (between As and Af), 0.7 A ≈ Af,
+#   0.9 A ≈ 157 °C, 1.1 A ≈ 214 °C (fin estimate, Churchill–Chu h)
+currents_mA = [500, 700, 900, 1100]              # parametric sweep (mA)
 currents_A  = [I * 1e-3 for I in currents_mA]   # in amperes
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -122,14 +125,14 @@ def air_properties(T_film_C):
     """
     Return (k_air, nu, alpha_air, Pr, beta) for dry air at T_film (°C).
     Linear interpolation over standard tabulated values (Incropera Table A.4).
-    Valid range: 20–100 °C.
+    Valid range: 20–160 °C (film temperature reaches ≈ 120 °C at 1.1 A).
     """
-    # Tabulated at 20, 40, 60, 80, 100 °C
-    T_tab   = np.array([20,    40,    60,    80,    100  ])
-    k_tab   = np.array([0.02551, 0.02756, 0.02966, 0.03047, 0.03095])  # W/(m·K)
-    nu_tab  = np.array([15.11,  16.97,  18.97,  20.92,  23.02]) * 1e-6  # m²/s
-    al_tab  = np.array([21.40,  24.02,  26.92,  29.85,  32.80]) * 1e-6  # m²/s
-    Pr_tab  = np.array([0.7290, 0.7255, 0.7202, 0.7154, 0.7111])
+    # Tabulated at 20–160 °C in 20 °C steps
+    T_tab   = np.array([20,      40,      60,      80,      100,     120,     140,     160    ])
+    k_tab   = np.array([0.02551, 0.02756, 0.02966, 0.03047, 0.03095, 0.03235, 0.03374, 0.03511])  # W/(m·K)
+    nu_tab  = np.array([15.11,   16.97,   18.97,   20.92,   23.02,   25.22,   27.40,   29.65  ]) * 1e-6  # m²/s
+    al_tab  = np.array([21.40,   24.02,   26.92,   29.85,   32.80,   35.65,   38.76,   41.91  ]) * 1e-6  # m²/s
+    Pr_tab  = np.array([0.7290,  0.7255,  0.7202,  0.7154,  0.7111,  0.7073,  0.7041,  0.7014 ])
 
     T_film_C = np.clip(T_film_C, T_tab[0], T_tab[-1])
     k_air    = np.interp(T_film_C, T_tab, k_tab)
@@ -247,7 +250,7 @@ print()
 #
 #  Axial grading (symmetric about z = L/2):
 #    • dz_fine   = 0.1 mm  over z_fine = 10 mm from each clamp (≈ 2 L_b),
-#                  resolving the end-cooling boundary layer (L_b ≈ 4.9–5.3 mm)
+#                  resolving the end-cooling boundary layer (L_b ≈ 4.3–4.7 mm)
 #    • geometric growth (ratio 1.1) from 0.1 mm up to 0.5 mm   (≈ 4 mm)
 #    • dz_core  ≤ 0.5 mm  uniform in the interior, where T is uniform in z
 #  The mesh is built uniform and its z-coordinates are then remapped onto the
@@ -524,7 +527,7 @@ FORMATTING INCONSISTENCIES TO FIX IN EXPOSÉ:
    Domain statement becomes: Ω = [0, L] × [0, R] × [0, t_final]   (z, r, t).
 
 2. h = 15 W/(m²·K) appears in Fig 1 and Fig 7 supertitles. Replace with
-   "h = f(I), 51–68 W/(m²·K), Churchill–Chu (1975)" after rerunning simulations.
+   "h = f(I), 62–74 W/(m²·K), Churchill–Chu (1975)" after rerunning simulations.
 
 MISSING EQUATIONS TO ADD:
 ──────────────────────────
@@ -535,13 +538,13 @@ MISSING EQUATIONS TO ADD:
 
 4. Thermal time constant (add to §4.1 or caption):
        τ = ρ cp R / (2h)        [s]
-   Numerical values: τ ≈ 6.5–8.5 s depending on current (tabulate in paper).
+   Numerical values: τ ≈ 5.6–6.7 s depending on current (tabulate in paper).
    NOTE: this is the lumped-capacitance τ for Bi≪1, NOT the diffusion time
    ρ cp R²/(4k) ≈ 0.5 ms. State which definition is used.
 
 5. End-cooling characteristic length (add to §4.1):
        L_b = √(kR / 2h)         [m]
-   Numerical range with corrected h: L_b ≈ 4.1–4.9 mm (not 9.5 mm).
+   Numerical range with corrected h: L_b ≈ 4.3–4.7 mm (not 9.5 mm).
    Update all figure annotations and exposé references to this range.
 
 6. Analytical steady-state midpoint temperature (add to §6.1 as self-consistency check):
@@ -551,12 +554,12 @@ MISSING EQUATIONS TO ADD:
 THEORY TO EXPAND:
 ──────────────────
 7. §4.3 — Add two sentences on Biot number:
-   "The Biot number Bi = hR/k ≈ 5×10⁻⁴ ≪ 1 confirms that radial conduction
+   "The Biot number Bi = hR/k ≈ 5–6×10⁻⁴ ≪ 1 confirms that radial conduction
    resistance is negligible compared to surface convective resistance, and the
    temperature field is essentially uniform in r for d = 0.3 mm. This justifies
    the 1D axial reduction for experimental validation while retaining the 2D
    architecture in the PINN, which generalises to larger diameters (e.g. d = 3 mm,
-   where ΔT_radial ∝ R² increases by a factor of 100 to ~500 mK, measurable and
+   where ΔT_radial ∝ R² increases by a factor of 100 to ~1–6 K, measurable and
    physically significant) without retraining."
 
 8. §6.1 — Add paragraph on h derivation and self-consistency:
@@ -569,16 +572,18 @@ FIG 3 SUBTITLE — CORRECTED FRAMING:
 9. Change right-panel title from:
       "confirms 2D model is needed"
    to:
-      "ΔT_radial = 5–20 mK for d = 0.3 mm: sub-thermocouple resolution.
-       Scales to ~500 mK at d = 3 mm (×100, ∝R²) where 2D is necessary.
+      "ΔT_radial ≈ 10–60 mK for d = 0.3 mm: sub-thermocouple resolution.
+       Scales to ~1–6 K at d = 3 mm (×100, ∝R²) where 2D is necessary.
        2D PINN architecture retained for diameter generalisability."
 
 FIG 2 — ADDITIONS:
 ────────────────────
 10. Add figure note (in paper caption, not in plot itself):
    (a) τ = ρ cp R / (2h): numerical values per current (see table above)
-   (b) L_b = √(kR/2h): numerical range 4.1–4.9 mm (update vertical dotted lines)
-   (c) "At 350 mA, T_ss approaches A_f = 110 °C. The absence of a latent-heat
-       plateau is the expected consequence of the constant-cp assumption in
+   (b) L_b = √(kR/2h): numerical range 4.3–4.7 mm (update vertical dotted lines)
+   (c) "At 0.5 A, T_ss (≈ 70 °C) lies between A_s = 60 °C and A_f = 110 °C;
+       0.7 A reaches ≈ A_f and 0.9–1.1 A exceed it (≈ 157–214 °C), so the
+       wire fully transforms to austenite. The absence of a latent-heat plateau
+       where the curves cross A_s–A_f is the expected consequence of the constant-cp assumption in
        Approach 1 and quantifies the domain of validity of the linear baseline."
 """
