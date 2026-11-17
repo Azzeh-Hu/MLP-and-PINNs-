@@ -16,14 +16,6 @@ introduces or removes relative to the others.
 ## Governing equations (L2, full form)
 
 ```
-$$rho [c_p dT/dt + dH dxi/dt] = (1/r) d/dr(r k dT/dr) + d/dz(k dT/dz) + I^2 rho_e(xi) / (pi^2 R^4)$$
-tau_xi dxi/dt              = max(xi_A(T) - xi, 0) - max(xi - xi_M(T), 0)
-
-T = T_inf at z = 0, L   |   -k dT/dr = h (T - T_inf) at r = R   |   dT/dr = 0 at r = 0
-T = T_inf, xi = 0 at t = 0;   current on for 0 < t <= t_off, off afterwards
-```
-
-```
 rho [c_p dT/dt + dH dxi/dt] = (1/r) d/dr(r k dT/dr) + d/dz(k dT/dz) + I^2 rho_e(xi) / (pi^2 R^4)
 tau_xi dxi/dt              = max(xi_A(T) - xi, 0) - max(xi - xi_M(T), 0)
 
