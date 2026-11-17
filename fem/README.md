@@ -48,16 +48,25 @@ Case names encode diameter, level and current, e.g. `D0305_C3_I0603mA`.
 | Path | Content |
 |---|---|
 | `data/field.csv.gz` | `t_s, z_m, T_axis_K, T_surf_K[, xi_surf]`, every 1 s on a 1 mm axial grid |
-| `sensors/sensors_N{3..8}.csv` | surface temperature at `N` uniformly spaced sensors `z_i = i L/(N+1)`, every 0.1 s, **noise-free** (add noise at training time) |
+| `data/energy.csv` | global energy balance every 0.1 s: stored energy change, Joule input, surface and clamp losses, imbalance |
+| `sensors/<layout>_N{3..8}.csv` | surface temperature every 0.1 s, **noise-free** (add noise at training time), for three layouts (below) |
 | `figures/` | sensor transients, axial profiles (+ clamp zoom), space–time maps of T and ξ |
 | `summary.json` | inputs, h, Bi, L_b, τ_th, peak values, solver statistics, level-specific checks |
+
+Sensor layouts (`core/params.py: sensor_positions`):
+
+| Layout | Positions | Purpose |
+|---|---|---|
+| `P1_uniform` | `z_i = i L/(N+1)` | naive baseline; all sensors sit in the flat mid-section |
+| `P2_clamp` | 1 at mid-span, the rest alternating between clamps at 2–25 mm (≈ 5 L_b) | covers the end-cooling layer, where the gradients are |
+| `P3_half` | `z_i = i (L/2)/N` on one half | tests whether the PINN infers symmetry |
 
 `results/fem/comparison/` (from `compare_levels.py`): per-case overlays, the phase-gap map
 `T_L0 − T_L2`, and `model_errors.csv` (RMS / max error of L0 and L1 against L2, whole domain
 and inside / outside the transformation region).
 
-`results/fem/verification/report.json` (from `verify.py`): analytic and target checks, mesh and
-time-step convergence, and the L2 → L1 limit.
+`results/fem/verification/report.json` (from `verify.py`): analytic, target and energy checks,
+mesh (2× in r and z, and 2× in r alone) and time-step convergence, symmetry, and the L2 → L1 limit.
 
 ## Run
 
@@ -66,7 +75,8 @@ time-step convergence, and the L2 → L1 limit.
 ./run_all.sh --verify        # + verification
 python L2_coupled_kinetics.py --only D0305_C4   # one case
 ```
-Requires a FEniCSx (DOLFINx ≥ 0.10) conda environment with matplotlib.
+Environment: `conda env create -f environment.yml` (DOLFINx 0.11, PETSc 3.25 with MUMPS).
+`--replot` on any level script redraws its figures from the saved files without re-solving.
 
 ## Code layout
 
@@ -77,12 +87,29 @@ fem/
   core/params.py       ALL inputs: geometry, material, transformation temperatures, test matrix, numerics
   core/convection.py   Churchill–Chu + radiation
   core/mesh.py         axisymmetric graded mesh, point probes
-  core/solver.py       Newton settings
+  core/solver.py       Newton settings (MUMPS LU: the mixed T-xi system needs pivoting)
+  core/energy.py       global energy balance per time step
   core/runner.py       time loop + export (identical for all levels)
   core/plots.py        per-case figures
 ```
 
-## Open inputs (marked [TBD] in `core/params.py`)
+## Status and open tasks
 
-A_s, A_f, M_s, M_f and ΔH from DSC of the purchased wire batch; emissivity; the phase
-dependence of k (literature disagrees on its sign). Change them in `core/params.py` only.
+Verified so far: L0 matches the fin solution to 0.02 K; L1 reaches its target temperature
+(±0.1 K where steady); energy balance closes to ~2·10⁻⁴ of the Joule input for L0, L1 and L2.
+
+Results in `results/fem/` from before the energy/sensor-layout update use the old sensor
+file names (`sensors_N*.csv`) and lack `energy.csv`; **rerun everything with
+`./run_all.sh --verify`**, which overwrites each case folder.
+
+| # | Task | Type |
+|---|---|---|
+| 1 | Run `./run_all.sh --verify` (all 30 runs, comparison, verification) | run |
+| 2 | Check `verification/report.json`: mesh/dt differences must be well below the phase gap in `comparison/model_errors.csv` | check |
+| 3 | Replace [TBD] inputs in `core/params.py`: A_s, A_f, M_s, M_f, ΔH (DSC); emissivity; confirm c_p, k, ρ_e against the current Flexinol datasheet | inputs |
+| 4 | Decide on t_off: D0508 C3/C4 do not reach steady state in 90 s (latent heat lengthens the time constant); use 150 s or define cases by reached peak | decision |
+| 5 | Sensitivity study: vary k, c_p, ΔH, h, ε, A_s/A_f within literature ranges | code |
+| 6 | Validation against published data (Debska 2017 IR profiles, Zanotti 2009 heating curves) | code |
+| 7 | MMS test for the nonlinear L1/L2 forms | code |
+| 8 | T-dependent h(T) (currently constant per case) and a Robin clamp condition as variants | code |
+| 9 | State in the paper: stress-free wire, no R-phase, phase-independent k and c_p | writing |

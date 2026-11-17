@@ -3,7 +3,8 @@ Verification of the FEM reference (run once; takes ~15-30 min).
 
 1. Analytic   : L0 steady mid-span rise vs fin solution dT = Q R/(2h)    (from summaries)
 2. Target     : L1 steady mid-span T vs the target used to set the current (from summaries)
-3. Mesh       : L2 on the hardest case, nominal vs 2x refined in r and z
+3. Mesh       : L2 on the hardest case, nominal vs 2x refined in r and z (and Nr x2 alone)
+   Symmetry   : max |T(z, t) - T(L - z, t)| of the nominal run (mesh/BC symmetry)
 4. Time step  : L2, dt vs dt/2  (backward Euler, first order)
 5. Limit      : L2 with tau_xi -> 0 must reproduce L1 during heating
 Differences are max |dT| over the exported (z, t) grid. Writes results/fem/verification/report.json
@@ -39,7 +40,8 @@ def from_summaries():
         s1 = json.loads((ROOT / "L1_apparent_heat_capacity" / c["name"] / "summary.json").read_text())
         out[c["name"]] = dict(
             L0_fin_error_K=round(s0["T_mid_at_toff_C"] - (P.T_INF - 273.15) - s0["dT_fin_analytic_K"], 4),
-            L1_target_error_K=round(s1["T_mid_at_toff_C"] - s1["T_target_C"], 4))
+            L1_target_error_K=round(s1["T_mid_at_toff_C"] - s1["T_target_C"], 4),
+            energy_error_rel={lv: s["energy_error_rel"] for lv, s in (("L0", s0), ("L1", s1))})
     return out
 
 
@@ -50,6 +52,10 @@ def main():
     base = run(L2.Model)
     fine = run(L2.Model, nr=2 * P.NR, dz_fine=0.5 * P.MESH["dz_fine"], dz_core=0.5 * P.MESH["dz_core"])
     report["mesh_2x_max_dT_K"] = max_diff(base, fine)
+    report["mesh_Nr2x_max_dT_K"] = max_diff(base, run(L2.Model, nr=2 * P.NR))
+    z = np.unique(base[:, 1])
+    Ts = base[:, 3].reshape(-1, len(z))
+    report["symmetry_max_dT_K"] = float(np.abs(Ts - Ts[:, ::-1]).max())
 
     dt0 = P.DT
     P.DT = 0.5 * dt0

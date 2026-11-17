@@ -35,9 +35,10 @@ def case_figures(d, field, t_s, T_s, z_s, case, level):
     for j, z in enumerate(z_s):
         ax.plot(t_s, C(T_s[:, j]), lw=1.2, label=f"z = {1e3 * z:.0f} mm")
     ax.axvline(P.T_OFF, c="k", lw=0.8)
-    ax.set(xlabel="t (s)", ylabel="T surface (°C)", title=title, xlim=(0, P.T_END))
+    ax.set(xlabel="t (s)", ylabel="T surface, P2_clamp sensors (°C)", title=title,
+           xlim=(0, P.T_END))
     _transformation_lines(ax)
-    ax.legend(fontsize=7, ncol=2)
+    ax.legend(fontsize=7, ncol=2, loc="center right")
     fig.savefig(d / "figures" / "transient_sensors.png"); plt.close(fig)
 
     # 2. axial profiles on the half wire (+ clamp zoom)

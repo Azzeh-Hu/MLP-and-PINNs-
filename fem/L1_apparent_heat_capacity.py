@@ -20,7 +20,8 @@ Solved (enthalpy form of the apparent-heat-capacity method)
     BCs and IC as in L0 (identical h per case, so L1 - L0 is purely the phase effect).
 
 Role : phase-aware reference for heating; L2 reduces to L1 on heating as tau_xi -> 0.
-Check: steady mid-span T vs the target temperature used to set the current.
+Check: steady mid-span T vs the target temperature used to set the current;
+       global energy balance incl. latent heat (core/energy.py).
 Run  : python L1_apparent_heat_capacity.py [--only D0305_C3]
 """
 import numpy as np
@@ -28,6 +29,7 @@ import ufl
 from dolfinx import fem
 
 from core import params as P, runner
+from core.energy import EnergyBalance
 from core.mesh import SURFACE
 from core.solver import Newton
 
@@ -52,6 +54,7 @@ class Model:
         bc = fem.dirichletbc(np.float64(P.T_INF),
                              fem.locate_dofs_topological(V, 1, geo.clamp_facets), V)
         self.newton = Newton(F, T, [bc], "L1_")
+        self.energy = EnergyBalance(geo, T, P.RHO * H(T), Q, case["h"])
         self.case, self.ndofs = case, V.dofmap.index_map.size_global
 
     def step(self, source_on):

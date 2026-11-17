@@ -17,7 +17,8 @@ Solved
     T = T_inf                      at t = 0;  Q = 0 for t > t_off
 
 Role : same physics as the Paper-1 PINN; isolates PINN error from model error.
-Check: steady mid-span rise vs the fin solution dT = Q R / (2 h)  (valid since L/2 >> L_b).
+Check: steady mid-span rise vs the fin solution dT = Q R / (2 h)  (valid since L/2 >> L_b);
+       global energy balance (core/energy.py).
 Run  : python L0_linear.py [--only D0305_C3]
 """
 import numpy as np
@@ -25,6 +26,7 @@ import ufl
 from dolfinx import fem
 
 from core import params as P, runner
+from core.energy import EnergyBalance
 from core.mesh import SURFACE
 from core.solver import Newton
 
@@ -47,6 +49,7 @@ class Model:
         bc = fem.dirichletbc(np.float64(P.T_INF),
                              fem.locate_dofs_topological(V, 1, geo.clamp_facets), V)
         self.newton = Newton(F, T, [bc], "L0_")
+        self.energy = EnergyBalance(geo, T, P.RHO * P.CP * T, self.Q, case["h"])
         self.case, self.ndofs = case, V.dofmap.index_map.size_global
 
     def step(self, source_on):

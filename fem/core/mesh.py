@@ -2,7 +2,7 @@
 
 Domain r in [0, R], z in [0, L]; x[0] = r, x[1] = z. Quadrilaterals, uniform in r,
 graded in z: fine next to the clamps (end-cooling layer, L_b ~ 4-7 mm), coarse inside.
-Boundary tag 2 = wire surface r = R. The axis r = 0 needs no condition: the weak form
+Boundary tags: 2 = wire surface r = R, 3 = clamp faces z = 0, L. The axis r = 0 needs no condition: the weak form
 is weighted by r, so the symmetry condition dT/dr = 0 is natural.
 """
 from dataclasses import dataclass
@@ -13,7 +13,7 @@ from dolfinx import mesh as dmesh
 from dolfinx import geometry
 import ufl
 
-SURFACE = 2
+SURFACE, CLAMPS = 2, 3
 QUAD = {"quadrature_degree": 4}     # fixed: auto-estimate for exp()/sqrt() is ~6x slower
 
 
@@ -49,9 +49,12 @@ def build(R, L, nr, dz_fine, z_fine, dz_core, growth):
 
     fdim = msh.topology.dim - 1
     surf = dmesh.locate_entities_boundary(msh, fdim, lambda x: np.isclose(x[0], R))
-    tags = dmesh.meshtags(msh, fdim, surf, np.full_like(surf, SURFACE))
     clamps = dmesh.locate_entities_boundary(
         msh, fdim, lambda x: np.isclose(x[1], 0.0) | np.isclose(x[1], L))
+    facets = np.concatenate([surf, clamps])
+    order = np.argsort(facets)
+    marks = np.concatenate([np.full_like(surf, SURFACE), np.full_like(clamps, CLAMPS)])
+    tags = dmesh.meshtags(msh, fdim, facets[order], marks[order])
     return Geometry(msh, ufl.Measure("dx", msh, metadata=QUAD),
                     ufl.Measure("ds", msh, subdomain_data=tags, metadata=QUAD),
                     ufl.SpatialCoordinate(msh)[0], clamps, R, L)

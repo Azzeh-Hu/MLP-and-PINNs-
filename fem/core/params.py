@@ -44,7 +44,8 @@ TAU_XI = 0.1                                # L2 transformation relaxation time 
 # ── Outputs ──────────────────────────────────────────────────────────────────
 OUT_DT = 1.0                                # field export interval (s)
 OUT_DZ = 1.0e-3                             # field export axial spacing (m)
-SENSOR_COUNTS = range(3, 9)                 # uniform surface sensors, N = 3..8
+SENSOR_COUNTS = range(3, 9)                 # surface sensors per layout, N = 3..8
+SENSOR_LAYOUTS = ("P1_uniform", "P2_clamp", "P3_half")
 
 # ── Test matrix: current levels defined by target steady-state peak temperature ─
 TARGETS = {                                 # level: (target peak T (K), regime)
@@ -64,6 +65,28 @@ def xi_heating(T, exp=np.exp):
 def xi_cooling(T, exp=np.exp):
     """Equilibrium austenite fraction on cooling; 99 % at Ms, 1 % at Mf."""
     return 1.0 / (1.0 + exp(-2.0 * np.log(99.0) * (T - 0.5 * (MS + MF)) / (MS - MF)))
+
+
+def sensor_positions(layout, n):
+    """Axial positions (m) of n surface sensors.
+
+    P1_uniform : z_i = i L/(n+1)                    -> all sit in the flat mid-section
+    P2_clamp   : 1 at mid-span (plateau level); the other n-1 alternate between the two
+                 clamps at distances geomspace(2, 25 mm) ~ 5 L_b (5 mm if only one per side),
+                 i.e. inside the end-cooling layer where the gradients are
+    P3_half    : z_i = i (L/2)/n on one half only   -> symmetry must be inferred
+    """
+    if layout == "P1_uniform":
+        return L * np.arange(1, n + 1) / (n + 1)
+    if layout == "P3_half":
+        return 0.5 * L * np.arange(1, n + 1) / n
+    if layout == "P2_clamp":
+        k_left = n // 2
+        side = lambda k: np.array([5e-3]) if k == 1 else np.geomspace(2e-3, 25e-3, k)
+        left = side(k_left)
+        right = L - side(n - 1 - k_left) if n - 1 - k_left > 0 else np.array([])
+        return np.sort(np.concatenate([left, [0.5 * L], right]))
+    raise ValueError(layout)
 
 
 def mix(prop, xi):

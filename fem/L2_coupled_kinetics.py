@@ -21,6 +21,7 @@ Still neglected (-> L3)
     - stress: transformation temperatures are stress-free values (free-hanging wire)
     - R-phase, phase-dependent k and c_p, T-dependent h, thermocouple heat sinking
 BCs/IC as in L0; xi(t = 0) = 0 (fully martensitic). xi needs no boundary condition.
+Check: global energy balance incl. latent heat release on cooling (core/energy.py).
 
 Run  : python L2_coupled_kinetics.py [--only D0305_C3]
 """
@@ -30,6 +31,7 @@ import ufl
 from dolfinx import fem
 
 from core import params as P, runner
+from core.energy import EnergyBalance
 from core.mesh import SURFACE
 from core.solver import Newton
 
@@ -66,6 +68,7 @@ class Model:
         T_bc.x.array[:] = P.T_INF
         dofs = fem.locate_dofs_topological((W.sub(0), V0), 1, geo.clamp_facets)
         self.newton = Newton(F_T + F_xi, self.u, [fem.dirichletbc(T_bc, dofs, W.sub(0))], "L2_")
+        self.energy = EnergyBalance(geo, T, P.RHO * (P.CP * T + P.DH * xi), Q, case["h"])
         self.case, self.ndofs = case, 2 * V0.dofmap.index_map.size_global
 
     def step(self, source_on):

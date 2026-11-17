@@ -15,7 +15,7 @@
   "newton_iters_total": 3365,
   "newton_iters_max": 2,
   "dofs": 8806,
-  "wall_time_s": 55.6,
+  "wall_time_s": 71.0,
   "mesh": {
     "dz_fine": 0.0001,
     "z_fine": 0.015,
@@ -26,5 +26,7 @@
   "dt_s": 0.1,
   "t_off_s": 90.0,
   "t_end_s": 180.0,
+  "energy_joule_J": 240.6438999786887,
+  "energy_error_rel": 0.00019852892074545783,
   "dT_fin_analytic_K": 81.66369207828309
 }

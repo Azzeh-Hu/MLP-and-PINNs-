@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Run the full FEM reference: L0, L1, L2 for all cases, then the level comparison.
 #   ./run_all.sh                  all levels + comparison
-#   ./run_all.sh --verify         also run verify.py (mesh / dt / tau_xi checks, ~30 min)
+#   ./run_all.sh --verify         also run verify.py (mesh / dt / tau_xi / symmetry checks)
+# Full run with --verify takes roughly 2-3 h on 2 cores (L2 ~5 min per case).
 #   ONLY=D0305_C3 ./run_all.sh    restrict to cases whose name contains ONLY
 #   FENICS_ENV=myenv ./run_all.sh use a specific conda env (default: first env with dolfinx)
 set -euo pipefail
@@ -19,9 +20,12 @@ if ! python -c "import dolfinx" 2>/dev/null; then
     conda activate "${FENICS_ENV:?no conda env with dolfinx found; set FENICS_ENV}"
 fi
 
-for script in L0_linear.py L1_apparent_heat_capacity.py L2_coupled_kinetics.py; do
-    python -u "$script" --only "${ONLY:-}"
-done
-python compare_levels.py
-[ "${1:-}" = "--verify" ] && python verify.py
-echo "Results in ../results/fem/"
+LOG="run_all_$(date +%Y%m%d_%H%M).log"
+{
+    for script in L0_linear.py L1_apparent_heat_capacity.py L2_coupled_kinetics.py; do
+        python -u "$script" --only "${ONLY:-}"
+    done
+    python -u compare_levels.py
+    if [ "${1:-}" = "--verify" ]; then python -u verify.py; fi
+} 2>&1 | tee "$LOG"
+echo "Results in ../results/fem/   log: fem/$LOG"
