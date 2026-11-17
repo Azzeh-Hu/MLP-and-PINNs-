@@ -1,0 +1,51 @@
+\babel@toc {english}{}\relax 
+\contentsline {section}{\numberline {1}Introduction of physics informed neural networks "PINNs" }{3}{section.1}%
+\contentsline {subsection}{\numberline {1.1}PINN vs NN}{3}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}The issue at hand}{3}{subsection.1.2}%
+\contentsline {subsection}{\numberline {1.3}PINN vs FEM/FVM}{3}{subsection.1.3}%
+\contentsline {subsection}{\numberline {1.4}Mathematical model of the equation}{3}{subsection.1.4}%
+\contentsline {section}{\numberline {2}The Perceptron — One Neuron, One Decision}{3}{section.2}%
+\contentsline {subsection}{\numberline {2.1}What a Perceptron Does}{4}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Activation Functions}{5}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}what are activation functions and when are they used?}{5}{subsection.2.3}%
+\contentsline {subparagraph}{ A bit of history }{6}{section*.2}%
+\contentsline {subsection}{\numberline {2.4}The math behind it - A simple Intro}{8}{subsection.2.4}%
+\contentsline {paragraph}{Single Perceptron Approximating $f(x_1, x_2) = \sin (x_1) + x_1 x_2$}{9}{figure.6}%
+\contentsline {section}{\numberline {3}Multi Layer Perceptrons}{12}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Why are multiple Perceptrons Needed? — The Nonlinearity Problem}{12}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Architecture}{15}{subsection.3.2}%
+\contentsline {subsubsection}{\numberline {3.2.1}Multiple neurons and layers}{16}{subsubsection.3.2.1}%
+\contentsline {paragraph}{Observation}{18}{section*.4}%
+\contentsline {section}{\numberline {4}Data types}{18}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Images}{19}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Simple data types}{19}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Combining data types and why non-dimentionalization matters}{19}{subsection.4.3}%
+\contentsline {section}{\numberline {5}types of neural network and their summuries}{19}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Fourier Feature Embeddings}{19}{subsection.5.1}%
+\contentsline {subsubsection}{\numberline {5.1.1}Why Does a Standard MLP Struggle with Sharp Gradients?}{19}{subsubsection.5.1.1}%
+\contentsline {subsubsection}{\numberline {5.1.2}What Are Fourier Feature Embeddings?}{19}{subsubsection.5.1.2}%
+\contentsline {section}{\numberline {6}The loss function and how the neural network updates its prediction}{20}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Backpropagation and Automatic Differentiation}{20}{subsection.6.1}%
+\contentsline {subsubsection}{\numberline {6.1.1}The Chain Rule and Intermediate Variables}{21}{subsubsection.6.1.1}%
+\contentsline {subsubsection}{\numberline {6.1.2}Forward Accumulation (FA).}{22}{subsubsection.6.1.2}%
+\contentsline {subsubsection}{\numberline {6.1.3}Backward (Reverse) Accumulation (BA).}{22}{subsubsection.6.1.3}%
+\contentsline {subsubsection}{\numberline {6.1.4}Key efficiency result.}{23}{subsubsection.6.1.4}%
+\contentsline {subsection}{\numberline {6.2}Worked Example: Forward Accumulation for $f(x_1, x_2) = x_1 x_2 + \sin x_1$}{23}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}In Each Step: Numerical Storage}{25}{subsection.6.3}%
+\contentsline {subsection}{\numberline {6.4}The Computation Graph}{25}{subsection.6.4}%
+\contentsline {subsection}{\numberline {6.5}Worked Example: Two Weights, One Step}{26}{subsection.6.5}%
+\contentsline {subsubsection}{\numberline {6.5.1}Worked Example: Two Weights, One Step}{26}{subsubsection.6.5.1}%
+\contentsline {subsubsection}{\numberline {6.5.2}Example 2 — Sigmoid Neuron}{28}{subsubsection.6.5.2}%
+\contentsline {subsubsection}{\numberline {6.5.3}Example 3 — Autodiff Exactness: $f(x) = \sin (x)\,e^x$}{29}{subsubsection.6.5.3}%
+\contentsline {section}{\numberline {7}Nondimensionalisation}{30}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Why Nondimensionalisation Matters}{30}{subsection.7.1}%
+\contentsline {paragraph}{Gradient pathology.}{31}{section*.7}%
+\contentsline {paragraph}{Network saturation.}{31}{section*.8}%
+\contentsline {subsection}{\numberline {7.2}The General Procedure}{31}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}Worked Example: the 1D Transient Heat Equation}{32}{subsection.7.3}%
+\contentsline {subsection}{\numberline {7.4}Application to the NiTi Wire Problem}{32}{subsection.7.4}%
+\contentsline {paragraph}{Boundary and initial conditions.}{33}{section*.9}%
+\contentsline {paragraph}{Numerical values for Flexinol HT 0.012\textquotedbl .}{33}{section*.10}%
+\contentsline {subsection}{\numberline {7.5}What the Network Sees Before and After Scaling}{34}{subsection.7.5}%
+\contentsline {subsection}{\numberline {7.6}The Three Dimensionless Groups}{34}{subsection.7.6}%
+\contentsline {paragraph}{$A^2$ — not a physical amplification.}{35}{section*.11}%

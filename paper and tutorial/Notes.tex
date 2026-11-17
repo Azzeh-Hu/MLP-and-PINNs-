@@ -1,0 +1,169 @@
+\documentclass[12pt, a4paper]{article}
+\usepackage{graphicx} % Required for inserting images
+
+
+% ── Packages ──────────────────────────────────────────────────────────────────
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta}
+\usepackage{geometry}
+
+\usepackage{setspace}
+\setstretch{1.25}
+\usepackage{parskip}
+\setlength{\parskip}{6pt}
+
+\usepackage{amsmath, amssymb, bm}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{ragged2e}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\definecolor{accentblue}{RGB}{30, 90, 160}
+\usepackage[
+  colorlinks=true,
+  linkcolor=accentblue,
+  citecolor=accentblue,
+  urlcolor=accentblue
+]{hyperref}
+\usepackage{cleveref}
+\usepackage{natbib}
+\bibliographystyle{plainnat}
+\title{PINNs tutorial}
+\author{ahmad azzeh}
+\date{May 2026}
+
+\begin{document}
+
+\section{ NiTi info}
+Tuesday, May 19, 2015: 9:15 AM
+Conference Theater (Crowne Plaza)
+Dr. Tom Duerig , Nitinol Devices and Components, Fremont, CA
+
+
+\noindent The austenite phase in Nitinol becomes unstable when cooled and seeks to find a successor structure of lesser entropy.   There are two candidate successors, a monoclinic martensite (M), and a rhombohedrally distorted martensite (R) often referred to as the R-phase.  While both are thermoelastic, the stability of R is far less dependent upon stress than is M.  Thus in medical devices it is common to observe both M and R during thermal cycling (in DSC or BFR tests, for example) yet only observe M in isothermal environments, such as tensile testing or in body temperature service.   Critical to the performance of many Nitinol medical implants is the lower plateau stress at body temperature, caused by the reversion of M.  Yet for many medical devices, the Af temperature, as defined by ASTM and others, is the temperature at which R reverts to austenite upon heating, not the temperature at which M reverts. 
+This paper will highlight several aspects of the competition between R and M from the perspective of medical device performance, clarifying why the temperature at which M reverts is important rather than the Af temperature.  The impact of this on how materials should be specified will be discussed.
+\subsection*{Tuesday, May 19, 2015: 9:35 AM}
+
+Conference Theater (Crowne Plaza)
+Mr. Thibaut Brosse , Ecole Nationale d�Ing�nieurs de Saint Etienne, Saint-Etienne, France
+Dr. Darren J. Hartl , Texas A&M Engineering Experimentation Station, College Station, TX
+
+\noindent The self-expanding stent remains the most common application of shape memory alloys in the biomedical field, and thus methods for improving the analysis and design optimization capabilities associated with these devices are of significant interest. A number of optimization approaches, many of them based on commercial software solutions, are being employed by engineers and researchers seeking the best design solutions (material responses, geometric configurations, etc.) for complex devices. However, the lack of adaptability and high cost of commercial optimization software can be restrictive to comprehensive engineering development in some cases. An alternative open source multi-disciplinary analysis and optimization framework known as OpenMDAO has been developed by NASA and offers an attractive alternative for stent design optimization. In this work we consider the constrained optimization problem of designing a self-expanding stent with a maximized radial restoring force that does not experience unreasonably high stresses during crimping nor fatigue-inducing strains during pulsatile loading. An innovative parameterization of a self-expanding stent is developed and employed. The design problem is addressed using multiple optimization algorithm options within the OpenMDAO framework and the effectiveness of the algorithms is compared.
+
+\subsection*{Tuesday, May 19, 2015: 10:55 AM}
+Conference Theater (Crowne Plaza)
+Mr. Chris Br�uner , ADMEDES Schuessler GmbH, Pforzheim, Germany
+Dr. Andreas Schuessler , ADMEDES SCHUESSLER GmbH, Pforzheim, Germany
+Dr. Markus Wohlschl�gel , ADMEDES Schuessler GmbH, Pforzheim, Germany
+
+\noindent Shape setting of Nitinol can be seen as one of the crucial processes to set product specific parameters for most laser-cut Nitinol medical devices. Technical advancements have generated two major processes, which represent the current industry standard: Fluidized Bed and Liquid Salt Bath. 
+The interaction between heating media, shape set tooling and product as well as time and temperature applied are the main drivers during shape setting for the manipulation of product specific parameters.
+
+In this study product specific parameters of a generic heart valve frame produced with the named standard shape set processes are going to be investigated: Chronic Outward Force (COF), Radial Resistive Force (RRF), Austenite Finish Temperature (Af) and Outer Diameter of Heart Valve Frame (Recoil). Heating rates and process variances (hollow vs. solid mandrels, batch vs. single loading) are also part of this study.
+
+Product parameters test results are correlated to the various shape set processes and discussed in the context of parameter centering and their deviation.
+
+\subsection*{ Direct Method For Predicting The High-Cycle Fatigue Regime In SMAs: Application To Nitinol Stents}
+Tuesday, May 19, 2015: 11:35 AM
+
+\noindent Conference Theater (Crowne Plaza)
+Dr. Michael Peigney , Ecole des Ponts ParisTech, Marne-la-Vallee cedex 2, France
+
+\noindent In fatigue design of metals, it is common practice to distinguish between high-cycle fatigue (i.e failure occurring after 10000-100000 cycles) and low-cycle fatigue. For elastic-plastic materials, there is an established correlation between fatigue and energy dissipation. In particular, high-cycle fatigue occurs when the energy dissipation remains bounded in time. Although the physical mechanisms of shape-memory alloys (SMAs) differ from plasticity, the hysteresis that is commonly observed in the stress-strain response shows that some energy dissipation occurs, and it can be reasonably assumed that situations where the energy dissipation remains bounded are the most favorable for fatigue design. In this communication, we present a direct method for determining if the energy dissipation in a SMA structure (submitted to a prescribed loading history) is bounded or not. That method has the notable advantage of relying only on elastic calculations, thus bypassing the need of incremental nonlinear analysis.
+
+
+\subsection*{Influence Of Pre-strain And Thermo-mechanical Treatment Of Next Generation Nitinol Materials in Rotary-Bending Fatigue}
+
+\noindent Tuesday, May 19, 2015: 3:15 PM
+Conference Theater (Crowne Plaza)
+Dr. Jochen Ulmer , Euroflex GmbH, Pforzheim, Germany
+Gerhard Sedlmayr , G. Rau GmbH & Co. KG, Pforzheim, Germany
+Hans Nusskern , G. Rau GmbH & Co. KG, Pforzheim, Germany
+Dr. Alan Pelton , G.RAU Inc., Fremont, CA
+
+\noindent It is well known in the industry, that Ti-rich secondary phases, as well as the ΔT are influencing the fatigue behavior of the final product [1,2,3]. Smaller DT results in better fatigue life [4]. Futhermore in recently published works it was shown, that pre-strain [5] and thermomechanical treatments [6] can also improve fatigue life. This paper works on the effect of pre-strain and thermomechanical treatment of different low inclusion Nitinol and tries to clarify if the influence of the pre-straining on fatigue behavior without the fatigue limiting effect of secondary phases. 
+
+
+
+
+\subsection*{On the Strong Dependence of Transformation Temperatures on Alloy Composition in NiTi-Based Shape Memory Alloys}
+Tuesday, May 19, 2015: 3:35 PM
+Hanborough (Crowne Plaza)
+Dr. Jan Frenzel , Ruhr-University Bochum, Bochum, Germany
+Mr. Andr Wieczorek , Ruhr-University Bochum, Bochum, Germany
+Mr. Burkhard Maass , Ruhr-University Bochum, Bochum, Germany
+I. Opahle , Ruhr-University Bochum, Bochum, Germany
+R. Drautz , Ruhr-University Bochum, Bochum, Germany
+Prof. Gunther Eggeler , Ruhr-University Bochum, Bochum, Germany
+It is well known that the martensite start temperature (MS) in NiTi-based shape memory alloys (SMAs) strongly depends on alloy composition. Materials scientists struggle to explain this effect since 1965, when Wang, Buehler and Pickard first described the strong dependence of MS on Ni-concentration in near stoichiometric binary NiTi. In the present study we take a new look on compositional effects in binary NiTi, ternary NiTiX (X=Cr, Cu, Hf, Pd, Pt, Zr) and quaternary NiTiYZ (Y: Cu, Z: Co, Pd) SMAs. Using differential scanning calorimetry and density functional theory simulations we show that the heat of transformation ΔH decreases as the Ni-concentration increases from 50.0 to 51.2 at. This causes a shift in the Gibbs free enthalpy difference of austenite GA(T) and martensite GM(T), which in turn results in a lower martensite start temperature. We discuss the roles of various mechanisms including the formation of point defects, changes in lattice constants, and changes in valence electron concentrations, which affect the enthalpy difference between austenite and martensite.
+
+
+\subsection*{Carbon Inclusions in NiTi SMAs: A Computational Thermodynamics Study}
+Tuesday, May 19, 2015: 3:15 PM
+Hanborough (Crowne Plaza)
+Dr. Federico Gallino , SAES Getters S.p.A., Lainate, Italy
+Mr. Marco Urbano , SAES Getters S.p.A, Lainate, Italy
+Dr. Alberto Coda , SAES Getters S.p.A, Lainate, Italy
+Binary NiTi alloys are one of the most successful shape memory materials today used in fatigue rated devices. Inclusions content represents a serious concern for fatigue life. Inclusions are generally the initiation sites of fatigue fractures and may negatively affect workability and mechanical properties. Typically, in nickel-titanium alloys the inclusions are titanium carbides, TiC, and intermetallic oxides (i.e. Ti4Ni2Ox).
+
+In SAES Group we have developed a reliable procedure, combining FESEM-EDS technique with optical metallography, for inclusion quantitative analysis in commercial standard VIM/VAR NiTi alloys. The inclusion type, size and amount have been observed to strongly depend on the Ni/Ti ratio, the melting and thermo-mechanical processes.
+
+In this work, we provide an interpretation and a theoretical model for carbide and oxide inclusions formation in NiTi alloys by means of computational thermodynamics.
+
+
+\subsection*{Characterization of NiTi alloys by instrumented nanoindentation: experiments and simulations}
+Tuesday, May 19, 2015
+Crowne Plaza
+Mr. Miroslav Frost , Institute of Thermomechanics, Prague, Czech Republic
+A. Kruisov� , Institute of Thermomechanics, Prague, Czech Republic
+V. Sh�něl , Institute of Thermomechanics, Prague, Czech Republic
+Dr. Petr Sedl�k , Institute of Thermomechanics, Prague, Czech Republic
+P. Hau�ild , Czech Technical University, Prague, Czech Republic
+Mr. Meni Kabla , Technion, Israel Institute of Technology, Haifa, Israel
+Prof. Doron Shilo , Technion, Israel Institute of Technology, Haifa, Israel
+Dr. Michal Landa , Institute of Thermomechanics, Prague, Czech Republic
+NiTi-based shape memory alloys (SMAs) are metallic materials exhibiting remarkable response to mechanical and/or thermal loading, e.g. superelasticity, pseudoplasticity or one-way shape memory effect. They can be engineered into structures of micro-size dimensions, hence they appear promising for application in MEMS. For their efficient utilization, appropriate characterization is important.
+Due to relative simplicity, indentation represents a very standard and popular technique for basic characterization of metallic materials providing information about stiffness and hardness. Moreover, it can be used for identification of other events in the material.
+
+This study aims to verify applicability of the recently developed constitu
+
+
+Self-Heating of Superelastic NiTi Shape Memory Alloys for Fatigue Study of Endodontic Files
+Tuesday, May 19, 2015
+Crowne Plaza
+Mr. Vincent Legrand , LBMS ENIB, Brest, France
+Dr. Luc Saint-Sulpice , LBMS ENIB, Brest, France
+Dr. Laurent Pino , LBMS ENIB, Brest, France
+S. Arbab Chirani , LBMS ENIB, Brest, France
+Prof. Sylvain Calloch , LBMS Ensta-Bretagne, BREST, France
+With their superelasticity, shape memory alloys wires are used as the base of endodontic files. These files are used in the dental field to prepare root canals of teeth. During their use, file separation by fatigue can occur and complicates the realized operation. Unfortunately, the fatigue property of shape memory alloys remains an unexplored area and their fatigue is not taking into account in dimensioning of the endodontic files. In this study, we focus on the fatigue of superelastic NiTi and on the self-heating phenomena. This study begins by using this fast method based on self-heating to determine fatigue properties. Self-heating measurements under cyclic loading have been set up on dog-bone samples. Using a modeling based on dissipation and thermo-mechanical coupling, self-heating results have been reproduced and in addition with a fatigue model we can predict fatigue properties of our samples. These results have been validated by fatigue tests at lo
+
+
+
+
+\subsection*{Improvements to the Fatigue Life of Shape Memory Alloys using Partial Transformation Cycles Based on Energy Output per Cycle}
+Friday, May 22, 2015: 10:30 AM
+Hanborough (Crowne Plaza)
+Mr. F. Sluis , Delft University of Technology, Delft, Netherlands
+Dr. H.E.N. Bersee , Delft University of Technology, Delft, Netherlands
+Dr. R.C. Alderliesten , Delft University of Technology, Delft, Netherlands
+Prof. R. Benedictus , Delft University of Technology, Delft, Netherlands
+
+
+\noindent Shape memory alloys (SMAs) are useful materials for actuators due to their high energy density. However, functional degradation is an important drawback of SMAs. Damage is created during the transformation process that inhibits the transformation in subsequent cycles. Because of this process the functional life of SMAs is finite and should be considered during the design of an SMA actuated device. Improving the functional life of SMAs will allow broader applicability.
+Since the material transforms over a temperature range, the energy differential increases during the transformation. At the end of the transformation the higher energy differential will cause more damage than at the beginning of the transformation. Using partial transformation cycles instead of full transformation cycles eliminates the most damaging part of the transformation and allows the functional life to be extended significantly.
+
+SMA wires are loaded by a dead weight and cycled at different degrees of transformation. By varying the weight, the work done per cycle is kept the same to allow a fair comparison among different specimen. It is shown that despite the same amount of work done, functional degradation can be significantly mitigated by employing partial transformation cycles.
+\end{document}
+
+
+

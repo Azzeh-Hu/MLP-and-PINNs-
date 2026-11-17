@@ -1,0 +1,231 @@
+\documentclass[12pt, a4paper]{article}
+
+% ── Packages ──────────────────────────────────────────────────────────────────
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{textcomp}
+\usepackage{newunicodechar}
+\newunicodechar{−}{-}
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta, shapes.geometric, matrix,
+                backgrounds, fit, calc,
+                decorations.pathreplacing, decorations.markings}
+\usepackage{geometry}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{xcolor}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{amsmath}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\pgfplotsset{compat=1.18}
+\definecolor{cgray}{RGB}{136,135,128}
+
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{amsmath}
+
+\definecolor{col-teal}  {RGB}{29,158,117}
+\definecolor{col-blue}  {RGB}{55,138,221}
+\definecolor{col-coral} {RGB}{216,90,48}
+\definecolor{col-purple}{RGB}{127,119,221}
+
+\pgfplotsset{
+  approxstyle/.style={
+    width=0.95\linewidth,
+    height=4.8cm,
+    axis lines=left,
+    grid=major,
+    grid style={dotted,gray!35},
+    tick label style={font=\footnotesize},
+    label style={font=\small},
+    title style={font=\small\bfseries},
+    xmin=0, xmax=6.30,
+    ymin=-1, ymax=21,
+    xtick={0,1.5708,3.1416,4.7124,6.2832},
+    xticklabels={$0$,$\frac{\pi}{2}$,$\pi$,$\frac{3\pi}{2}$,$2\pi$},
+    xlabel={$x_1$},
+    legend style={
+      font=\footnotesize,
+      at={(0.02,0.98)},
+      anchor=north west,
+      draw=gray!40,
+      fill=white,
+      fill opacity=0.85,
+      text opacity=1
+    },
+    clip=false
+  }
+}
+% ── shared style ──────────────────────────────────────────────────
+\pgfplotsset{
+  tut/.style={
+    width=0.92\linewidth,
+    height=5.5cm,
+    axis lines=left,
+    grid=major,
+    grid style={dotted, gray!40},
+    tick label style={font=\footnotesize},
+    label style={font=\small},
+    title style={font=\small\bfseries},
+    legend style={font=\footnotesize, at={(0.98,0.98)},
+                  anchor=north east, draw=gray!40},
+    clip=false,
+  }
+}
+\lstset{
+  language=Python,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue}\bfseries,
+  commentstyle=\color{gray}\itshape,
+  stringstyle=\color{teal},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  backgroundcolor=\color{gray!10},
+  breaklines=true,
+  frame=single,
+  showstringspaces=false
+}
+\usepackage{setspace}
+\setstretch{1.25}
+\usepackage{parskip}
+\setlength{\parskip}{6pt}
+\usepackage{amsmath, amssymb, bm}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{ragged2e}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\graphicspath{{Pics/}}
+
+\definecolor{cblue}{RGB}{56,138,221}
+\definecolor{cpurple}{RGB}{127,119,221}
+\definecolor{camber}{RGB}{186,117,23}
+\definecolor{cteal}{RGB}{29,158,117}
+\definecolor{ccoral}{RGB}{216,90,48}
+\definecolor{accentblue}{RGB}{0,114,206}
+\usepackage[
+  colorlinks=true,
+  linkcolor=accentblue,
+  citecolor=accentblue,
+  urlcolor=accentblue
+]{hyperref}
+\usepackage{cleveref}
+\usepackage{natbib}
+\bibliographystyle{plainnat}
+
+\title{PINNs and thier application to replace conventional methods such as FEM/FVM for Thermo temporal field reconstruction}
+\author{Ahmad Azzeh}
+\date{}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+\section{Introduction}
+
+Each paper starts with answering a question, for now what we are trying to answer is can PINNs accurately replicate FEM solutions in SMAs. This question needs a bit more elaboration as we can explore multiple domains of this problem. For this paper we will focus on the following:
+
+\begin{itemize}
+    \item Can PINNs replicate FEM values with sparse data on SMA, while the model we are taking into account is linear
+    \item Can PINNs replicate FEM solutions accuracy or higher without training data
+    \item Can PINNs solve the nonlinear issue with the need to be trained
+    
+\end{itemize}
+
+\subsection{PINNs history}
+\emph{physics informed neurla networks} or PINNs have emerged as a new filed of Neural networks and it was something proposed by \citep{raissi2019}. Where he applied the physics as a constraint to the neural networks so that it penalizes the error that is produced by following the implied domain from the physics PDE. The reader might see that in some papers you will also find something called PENNs, which are \emph{physics encoded neural networs}. Though this is mainly used to seperate the different possible structers of different neural networks, I view it as something that is under the umbrella of PINNs. 
+
+\section{Proposed problem}
+We have an NiTi wire that is 3mm in radius and 500mm in length.
+the wire will be heated from the middle point using a heatingband/joule heating then the heat will travel through the wire and the k-type sensors will measure our the temp at each point. This is will give us our first set of data - "Real World Data" .
+
+Now we will use FENICs to model an FEM analysis of the problem and see how accurate we can get. We will also measure the computational time and other factors that help improve the results. 
+
+Lastly, we will have our PINN that will be used as a test to see if PINNs are a viable tool in this scenario. However, we will perform two tests one with a trained PINN and the second with untrained PINN to see how will it can perform solely based on the physics constrains.
+
+\section{Setup and needed tools}   
+
+First let us define our real world experiment which will be the following. 
+
+the expirement will test for 3 different wire radii, that will be procured from Dynalloy Flexinol or Wytech FastLane. The wire diameter will be form 0.15 to 1mm (chossing the final sizes later on)
+
+joule heating at midpoint with different heating rates, data needs to be logged on to calcualte also the $dT/dt$ of the jould ´heating. We need 3 rates that let us enter the 3 different regions. 1st is below asutinite region, 2nd hovering on the border and the third is crossing over the boundary. 
+
+What I expect to see is that the FEM Will be able to model the first finely but will not be able to handle third as the simple FEM accounts only for the linear behaviour of the system. I assusme the for the untrained PINN but might see something different when using trained data. Perhaps a bais that will overcome the constraint from the governing PDEs. 
+
+FEM using FEnCSi will just use  asimple model of the equation assuming linear behavour as most FEMs do and see how long it will take to model for the whole length of the wire
+
+PINN testing for untrained and trained and see what results we get. 
+
+
+
+\section{methodology}
+This paper is to test how well, PINNs are able to solve the inverse of Thermal field reconstruction problems using sparse sensor data applied to NiTi. To do this we will do the following setup. 
+
+first, we produce our ground truth by using FEM simulation in FEniCs with very small sharp/high resultion giving us a set of data that we can use to compare to later. 
+
+What is the ground truth data, its 3 separate cases for studying the temp. change along the wire when being heated using Joule heating at the center of the wire. The ends of the wire are clamped so we have our boundary conditions to properly model the equation. 
+
+Case 1 below phase change of NiTi and Case 2 exactly on the threshold and case 3 above the threshold. 
+
+The simulation will be run for 500-650mm long wire with with an itteration of 2 different diameters, where r1 and r2, are 3mm and 6mm  respictivley - this is to test the radial influence. Duration is around 30s so we are able to see the progress of heat flow more clearly, under joule heating ranging from 150mA to 350mA. 
+
+\emph{Second}, we extract the data using sql or excel every 3 seconds $\tau$. this allows us to interpolate the data in between and see where FEM/FVM falls behind when solving the inverse.
+
+then we train the PINN using these data and see if it can replicate the results using 3-8 sensor points to also see how much effect the amount of sensor has. 
+
+The sensor placement is show in later sections, additionally this is something that helps us consider the boundary conditions. 
+
+
+what we are trying to see over all:
+\begin{itemize}
+    \item Can PINNs solve the inverse better and faster?
+    \item Can the embeded physics in the NN predict the change of phase accuratly and its effect on the temp change along the wire
+    \item Can PINN solve the inverse without being trained
+    \item what are the computational costs and error of each solution.
+
+\subsection{PINN structure}
+
+The PINN will be a 2,32,32,2 structure 2 inputs for the 2 paramaters Temp and location along the 2D axis. 
+
+the loss function will include the boundary conditions, PDE loss, Sensor Loss and intial condition loss. 
+
+the weights for each are adjusted using NTK-adjusted weights from wang et al
+
+Training the PINN will be using the refrence values from the complete FEniCSx values to heavily train the Boundary condition and sensor data loss. Then adaptive weight adjustment to start converging towards a solution and then finally using an optimizer to adjust the values. 
+
+\subsection{Sensor config is show directly in graphs }
+
+
+\subsection{Evaluation metrics}
+RMSE (root mean square error) over the full spatiotemporal domain. Maximum absolute error and its location. Relative L2 error. Point-wise error maps (for figures).
+ Phase-gap metric: deviation of the linear-model reconstruction from literature/experimental phase-aware reference values, computed at temperatures within the transformation range.
+    
+\end{itemize}
+    
+
+
+
+
+
+
+
+
+
+
+
+\end{document}
