@@ -1,0 +1,30 @@
+{
+  "level": "L0_linear",
+  "case": "D0305_C5_I0851mA",
+  "regime": "above Af (front travels to clamps)",
+  "D_mm": 0.305,
+  "I_A": 0.851,
+  "h_W_m2K": 71.86402302395481,
+  "T_target_C": 140.0,
+  "Bi": 0.0006088479728418393,
+  "L_b_mm": 4.370190953199906,
+  "tau_th_s": 5.726769566780534,
+  "T_mid_at_toff_C": 131.435021619446,
+  "T_mid_max_C": 131.435021619446,
+  "xi_mid_max": null,
+  "newton_iters_total": 3339,
+  "newton_iters_max": 2,
+  "dofs": 8806,
+  "wall_time_s": 54.5,
+  "mesh": {
+    "dz_fine": 0.0001,
+    "z_fine": 0.015,
+    "dz_core": 0.0005,
+    "growth": 1.1,
+    "nr": 6
+  },
+  "dt_s": 0.1,
+  "t_off_s": 90.0,
+  "t_end_s": 180.0,
+  "dT_fin_analytic_K": 109.40115687950744
+}

@@ -1,0 +1,29 @@
+{
+  "level": "L1_apparent_heat_capacity",
+  "case": "D0305_C3_I0603mA",
+  "regime": "mid-transformation",
+  "D_mm": 0.305,
+  "I_A": 0.603,
+  "h_W_m2K": 65.02503900116488,
+  "T_target_C": 85.0,
+  "Bi": 0.0005509065804265358,
+  "L_b_mm": 4.594263137449226,
+  "tau_th_s": 6.3290804022836085,
+  "T_mid_at_toff_C": 84.99336408946306,
+  "T_mid_max_C": 84.99336408946306,
+  "xi_mid_max": 0.49888408969157955,
+  "newton_iters_total": 4778,
+  "newton_iters_max": 4,
+  "dofs": 8806,
+  "wall_time_s": 83.7,
+  "mesh": {
+    "dz_fine": 0.0001,
+    "z_fine": 0.015,
+    "dz_core": 0.0005,
+    "growth": 1.1,
+    "nr": 6
+  },
+  "dt_s": 0.1,
+  "t_off_s": 90.0,
+  "t_end_s": 180.0
+}

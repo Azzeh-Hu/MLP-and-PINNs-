@@ -1,0 +1,30 @@
+{
+  "level": "L0_linear",
+  "case": "D0508_C4_I1300mA",
+  "regime": "at Af (completing)",
+  "D_mm": 0.508,
+  "I_A": 1.3,
+  "h_W_m2K": 48.671083969761526,
+  "T_target_C": 110.0,
+  "Bi": 0.0006868030737955237,
+  "L_b_mm": 6.853345138531933,
+  "tau_th_s": 14.083613186545566,
+  "T_mid_at_toff_C": 103.47107399598656,
+  "T_mid_max_C": 103.47107399598656,
+  "xi_mid_max": null,
+  "newton_iters_total": 3013,
+  "newton_iters_max": 2,
+  "dofs": 8806,
+  "wall_time_s": 54.7,
+  "mesh": {
+    "dz_fine": 0.0001,
+    "z_fine": 0.015,
+    "dz_core": 0.0005,
+    "growth": 1.1,
+    "nr": 6
+  },
+  "dt_s": 0.1,
+  "t_off_s": 90.0,
+  "t_end_s": 180.0,
+  "dT_fin_analytic_K": 81.58275879955981
+}

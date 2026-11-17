@@ -1,0 +1,30 @@
+{
+  "level": "L0_linear",
+  "case": "D0508_C3_I1091mA",
+  "regime": "mid-transformation",
+  "D_mm": 0.508,
+  "I_A": 1.091,
+  "h_W_m2K": 46.13042279037969,
+  "T_target_C": 85.0,
+  "Bi": 0.0006509515215975801,
+  "L_b_mm": 7.039541856261301,
+  "tau_th_s": 14.85927677521635,
+  "T_mid_at_toff_C": 82.4990294335393,
+  "T_mid_max_C": 82.4990294335393,
+  "xi_mid_max": null,
+  "newton_iters_total": 3087,
+  "newton_iters_max": 2,
+  "dofs": 8806,
+  "wall_time_s": 54.3,
+  "mesh": {
+    "dz_fine": 0.0001,
+    "z_fine": 0.015,
+    "dz_core": 0.0005,
+    "growth": 1.1,
+    "nr": 6
+  },
+  "dt_s": 0.1,
+  "t_off_s": 90.0,
+  "t_end_s": 180.0,
+  "dT_fin_analytic_K": 60.624025075107
+}
