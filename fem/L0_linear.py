@@ -32,7 +32,7 @@ from core.solver import Newton
 
 
 class Model:
-    def __init__(self, geo, case):
+    def __init__(self, geo, case, extra=None):
         V = fem.functionspace(geo.msh, ("Lagrange", 1))
         self.T, self.Tn = fem.Function(V), fem.Function(V)
         self.T.x.array[:] = self.Tn.x.array[:] = P.T_INF
@@ -45,6 +45,8 @@ class Model:
              + P.K * ufl.dot(ufl.grad(T), ufl.grad(v)) * r * dx
              - self.Q * v * r * dx
              + case["h"] * (T - P.T_INF) * v * r * geo.ds(SURFACE))
+        if extra is not None:                    # manufactured-solution terms (mms.py)
+            F += extra(T, v)
 
         bc = fem.dirichletbc(np.float64(P.T_INF),
                              fem.locate_dofs_topological(V, 1, geo.clamp_facets), V)

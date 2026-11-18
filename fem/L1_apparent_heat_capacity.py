@@ -19,6 +19,12 @@ Solved (enthalpy form of the apparent-heat-capacity method)
     conserved per step even when a step crosses the transformation range (Tubini et al. 2021).
     BCs and IC as in L0 (identical h per case, so L1 - L0 is purely the phase effect).
 
+Variants (keyword options, used by sensitivity.py; defaults = reference model)
+    h_local=True : h = h_conv + h_rad evaluated at the local surface temperature each step
+                   (lagged one step) instead of one constant per case
+    clamp_h=x    : clamps as a finite contact conductance, -k dT/dn = x (T - T_inf),
+                   instead of T = T_inf
+
 Role : phase-aware reference for heating; L2 reduces to L1 on heating as tau_xi -> 0.
 Check: steady mid-span T vs the target temperature used to set the current;
        global energy balance incl. latent heat (core/energy.py).
@@ -29,13 +35,14 @@ import ufl
 from dolfinx import fem
 
 from core import params as P, runner
+from core.convection import h_total
 from core.energy import EnergyBalance
-from core.mesh import SURFACE
+from core.mesh import CLAMPS, SURFACE
 from core.solver import Newton
 
 
 class Model:
-    def __init__(self, geo, case):
+    def __init__(self, geo, case, extra=None, h_local=False, clamp_h=None):
         V = fem.functionspace(geo.msh, ("Lagrange", 1))
         self.T, self.Tn = fem.Function(V), fem.Function(V)
         self.T.x.array[:] = self.Tn.x.array[:] = P.T_INF
@@ -46,19 +53,32 @@ class Model:
         H = lambda T: P.CP * T + P.DH * xi(T)
         self.on = fem.Constant(geo.msh, 1.0)
         Q = self.on * case["I"] ** 2 * P.mix(P.RHO_E, xi(T)) / (np.pi**2 * case["R"] ** 4)
+        self.h = None
+        h = case["h"]
+        if h_local:
+            self.h = fem.Function(V)
+            h = self.h
         F = (P.RHO * (H(T) - H(Tn)) / P.DT * v * r * dx
              + P.K * ufl.dot(ufl.grad(T), ufl.grad(v)) * r * dx
              - Q * v * r * dx
-             + case["h"] * (T - P.T_INF) * v * r * geo.ds(SURFACE))
+             + h * (T - P.T_INF) * v * r * geo.ds(SURFACE))
+        bcs = [fem.dirichletbc(np.float64(P.T_INF),
+                               fem.locate_dofs_topological(V, 1, geo.clamp_facets), V)]
+        if clamp_h is not None:
+            F += clamp_h * (T - P.T_INF) * v * r * geo.ds(CLAMPS)
+            bcs = []
+        if extra is not None:                    # manufactured-solution terms (mms.py)
+            F += extra(T, v)
 
-        bc = fem.dirichletbc(np.float64(P.T_INF),
-                             fem.locate_dofs_topological(V, 1, geo.clamp_facets), V)
-        self.newton = Newton(F, T, [bc], "L1_")
-        self.energy = EnergyBalance(geo, T, P.RHO * H(T), Q, case["h"])
+        self.newton = Newton(F, T, bcs, "L1_")
+        self.energy = EnergyBalance(geo, T, P.RHO * H(T), Q, h)
         self.case, self.ndofs = case, V.dofmap.index_map.size_global
 
     def step(self, source_on):
         self.on.value = 1.0 if source_on else 0.0
+        if self.h is not None:
+            self.h.x.array[:] = h_total(self.Tn.x.array - P.T_INF, self.case["D"], P.T_INF,
+                                        P.EMISSIVITY)
         it = self.newton.solve()
         self.Tn.x.array[:] = self.T.x.array
         return it

@@ -10,6 +10,7 @@ Full model of this study (no further reduction of the thermal physics):
     xi_M(T) cooling equilibrium curve (99 % at M_s, 1 % at M_f)  -> reverse A -> M
     <s>_+   max(s, 0) (semismooth Newton); between the two curves xi stays exactly frozen
             (hysteresis loop); latent heat is absorbed on heating and released on cooling.
+    The xi equation is enforced at the mesh nodes (lumped mass, see node_dx).
     tau_xi  relaxation time: the Allen-Cahn-type kinetics of phase-field models reduced to a
             macroscopic fraction without gradient term (Biner 2017, Ch. 6); tau_xi -> 0 gives
             rate-independent transformation, and on heating L2 -> L1.
@@ -38,8 +39,15 @@ from core.solver import Newton
 ramp = lambda s: ufl.max_value(s, 0.0)           # exact <s>_+: no drift inside the loop
 
 
+def node_dx(msh):
+    """Vertex (GLL) quadrature = lumped mass: the xi ODE is enforced node by node.
+    A consistent mass matrix smears the max() kinks across neighbours and does not converge
+    (found with mms.py). No r weight, so nodes on the axis keep a non-zero weight."""
+    return ufl.Measure("dx", msh, metadata={"quadrature_rule": "GLL", "quadrature_degree": 1})
+
+
 class Model:
-    def __init__(self, geo, case, tau_xi=P.TAU_XI):
+    def __init__(self, geo, case, tau_xi=P.TAU_XI, extra=None):
         p1 = basix.ufl.element("Lagrange", geo.msh.basix_cell(), 1)
         W = fem.functionspace(geo.msh, basix.ufl.mixed_element([p1, p1]))
         self.u, self.un = fem.Function(W), fem.Function(W)
@@ -59,15 +67,19 @@ class Model:
                + P.K * ufl.dot(ufl.grad(T), ufl.grad(v)) * r * dx
                - Q * v * r * dx
                + case["h"] * (T - P.T_INF) * v * r * geo.ds(SURFACE))
-        F_xi = ((xi - xin) / P.DT - (ramp(xi_A - xi) - ramp(xi - xi_M)) / tau_xi) * w * r * dx
+        F_xi = ((xi - xin) / P.DT - (ramp(xi_A - xi) - ramp(xi - xi_M)) / tau_xi) * w * node_dx(geo.msh)
+        F = F_T + F_xi
+        if extra is not None:                    # manufactured-solution terms (mms.py)
+            F += extra(T, xi, v, w)
 
-        V0, self.map0 = W.sub(0).collapse()
-        V1, self.map1 = W.sub(1).collapse()
+        V0, map0 = W.sub(0).collapse()
+        V1, map1 = W.sub(1).collapse()
+        self.map0, self.map1 = np.ravel(map0), np.ravel(map1)
         self.T_out, self.xi_out = fem.Function(V0), fem.Function(V1)
         T_bc = fem.Function(V0)
         T_bc.x.array[:] = P.T_INF
         dofs = fem.locate_dofs_topological((W.sub(0), V0), 1, geo.clamp_facets)
-        self.newton = Newton(F_T + F_xi, self.u, [fem.dirichletbc(T_bc, dofs, W.sub(0))], "L2_")
+        self.newton = Newton(F, self.u, [fem.dirichletbc(T_bc, dofs, W.sub(0))], "L2_")
         self.energy = EnergyBalance(geo, T, P.RHO * (P.CP * T + P.DH * xi), Q, case["h"])
         self.case, self.ndofs = case, 2 * V0.dofmap.index_map.size_global
 

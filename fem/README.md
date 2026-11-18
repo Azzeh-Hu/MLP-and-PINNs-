@@ -68,11 +68,20 @@ and inside / outside the transformation region).
 `results/fem/verification/report.json` (from `verify.py`): analytic, target and energy checks,
 mesh (2× in r and z, and 2× in r alone) and time-step convergence, symmetry, and the L2 → L1 limit.
 
+`results/fem/verification/mms.json` (from `mms.py`): method of manufactured solutions for L0, L1
+and L2, using the model classes unchanged. Observed order in the L2 norm ≈ 1.95 for T (all
+levels) and ξ (L2); expected 2 for P1 elements.
+
+`results/fem/sensitivity/<case>.csv|png` (from `sensitivity.py`): one-at-a-time sensitivity of
+L1 (heating) to k, c_p, ΔH, h, ε, A_s/A_f, ρ_e, plus two model-form variants (local h(T),
+finite clamp conductance). The current is held fixed.
+
 ## Run
 
 ```bash
 ./run_all.sh                 # L0, L1, L2 for all cases + comparison  (Windows: run_all.bat)
-./run_all.sh --verify        # + verification
+./run_all.sh --verify        # + MMS and convergence verification
+./run_all.sh --verify --sens # + sensitivity study
 python L2_coupled_kinetics.py --only D0305_C4   # one case
 ```
 Environment: `conda env create -f environment.yml` (DOLFINx 0.11, PETSc 3.25 with MUMPS).
@@ -83,7 +92,7 @@ Environment: `conda env create -f environment.yml` (DOLFINx 0.11, PETSc 3.25 wit
 ```
 fem/
   L0_linear.py, L1_apparent_heat_capacity.py, L2_coupled_kinetics.py   physics (one level each)
-  compare_levels.py, verify.py, run_all.sh
+  compare_levels.py, verify.py, mms.py, sensitivity.py, run_all.sh
   core/params.py       ALL inputs: geometry, material, transformation temperatures, test matrix, numerics
   core/convection.py   Churchill–Chu + radiation
   core/mesh.py         axisymmetric graded mesh, point probes
@@ -96,7 +105,9 @@ fem/
 ## Status and open tasks
 
 Verified so far: L0 matches the fin solution to 0.02 K; L1 reaches its target temperature
-(±0.1 K where steady); energy balance closes to ~2·10⁻⁴ of the Joule input for L0, L1 and L2.
+(±0.1 K where steady); energy balance closes to ~2·10⁻⁴ of the Joule input for L0, L1 and L2;
+MMS gives second-order convergence for all levels. MMS also exposed that the L2 ξ equation
+must be enforced node by node (lumped mass); with a consistent mass matrix ξ did not converge.
 
 Results in `results/fem/` from before the energy/sensor-layout update use the old sensor
 file names (`sensors_N*.csv`) and lack `energy.csv`; **rerun everything with
@@ -108,8 +119,8 @@ file names (`sensors_N*.csv`) and lack `energy.csv`; **rerun everything with
 | 2 | Check `verification/report.json`: mesh/dt differences must be well below the phase gap in `comparison/model_errors.csv` | check |
 | 3 | Replace [TBD] inputs in `core/params.py`: A_s, A_f, M_s, M_f, ΔH (DSC); emissivity; confirm c_p, k, ρ_e against the current Flexinol datasheet | inputs |
 | 4 | Decide on t_off: D0508 C3/C4 do not reach steady state in 90 s (latent heat lengthens the time constant); use 150 s or define cases by reached peak | decision |
-| 5 | Sensitivity study: vary k, c_p, ΔH, h, ε, A_s/A_f within literature ranges | code |
-| 6 | Validation against published data (Debska 2017 IR profiles, Zanotti 2009 heating curves) | code |
-| 7 | MMS test for the nonlinear L1/L2 forms | code |
-| 8 | T-dependent h(T) (currently constant per case) and a Robin clamp condition as variants | code |
+| 5 | Sensitivity study: `sensitivity.py` written; confirm the [verify] ranges in its header | inputs |
+| 6 | Validation against published data (Debska 2017 IR profiles, Zanotti 2009 heating curves): needs the figures digitised from the PDFs | data |
+| 7 | ~~MMS test~~ done (`mms.py`) | done |
+| 8 | ~~h(T) and clamp-conductance variants~~ done (L1 options, used by `sensitivity.py`); decide whether either becomes the reference | decision |
 | 9 | State in the paper: stress-free wire, no R-phase, phase-independent k and c_p | writing |
