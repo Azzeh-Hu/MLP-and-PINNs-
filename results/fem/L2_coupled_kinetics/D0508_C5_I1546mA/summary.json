@@ -1,0 +1,32 @@
+{
+  "level": "L2_coupled_kinetics",
+  "case": "D0508_C5_I1546mA",
+  "regime": "above Af (front travels to clamps)",
+  "D_mm": 0.508,
+  "I_A": 1.546,
+  "h_W_m2K": 51.342472742518396,
+  "T_target_C": 140.0,
+  "Bi": 0.0007244993375888707,
+  "L_b_mm": 6.672671156573624,
+  "tau_th_s": 13.350831843210855,
+  "T_mid_at_toff_C": 139.77077536566986,
+  "T_mid_max_C": 139.77077536566986,
+  "xi_mid_max": 0.9999571928326492,
+  "newton_iters_total": 4446,
+  "newton_iters_max": 3,
+  "dofs": 17612,
+  "wall_time_s": 424.2,
+  "mesh": {
+    "dz_fine": 0.0001,
+    "z_fine": 0.015,
+    "dz_core": 0.0005,
+    "growth": 1.1,
+    "nr": 6
+  },
+  "dt_s": 0.1,
+  "t_off_s": 90.0,
+  "t_end_s": 180.0,
+  "energy_joule_J": 429.11909023790787,
+  "energy_error_rel": 0.00018701269441760007,
+  "tau_xi_s": 0.1
+}

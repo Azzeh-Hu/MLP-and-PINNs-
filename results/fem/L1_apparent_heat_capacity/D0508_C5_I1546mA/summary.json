@@ -12,10 +12,10 @@
   "T_mid_at_toff_C": 139.7716915649387,
   "T_mid_max_C": 139.7716915649387,
   "xi_mid_max": 0.9999572168925434,
-  "newton_iters_total": 4977,
+  "newton_iters_total": 4981,
   "newton_iters_max": 3,
   "dofs": 8806,
-  "wall_time_s": 89.0,
+  "wall_time_s": 195.8,
   "mesh": {
     "dz_fine": 0.0001,
     "z_fine": 0.015,
@@ -25,5 +25,7 @@
   },
   "dt_s": 0.1,
   "t_off_s": 90.0,
-  "t_end_s": 180.0
+  "t_end_s": 180.0,
+  "energy_joule_J": 429.1453443081596,
+  "energy_error_rel": 0.00018699784282898886
 }

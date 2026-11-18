@@ -9,13 +9,13 @@
   "Bi": 0.0005790031937478415,
   "L_b_mm": 4.481406773164475,
   "tau_th_s": 6.021956492324901,
-  "T_mid_at_toff_C": 110.072636140697,
-  "T_mid_max_C": 110.072636140697,
-  "xi_mid_max": 0.9900846195328166,
-  "newton_iters_total": 4007,
+  "T_mid_at_toff_C": 110.0726361502858,
+  "T_mid_max_C": 110.0726361502858,
+  "xi_mid_max": 0.9900846178242122,
+  "newton_iters_total": 4326,
   "newton_iters_max": 4,
   "dofs": 17612,
-  "wall_time_s": 484.6,
+  "wall_time_s": 382.6,
   "mesh": {
     "dz_fine": 0.0001,
     "z_fine": 0.015,
@@ -26,5 +26,7 @@
   "dt_s": 0.1,
   "t_off_s": 90.0,
   "t_end_s": 180.0,
+  "energy_joule_J": 256.36713197751664,
+  "energy_error_rel": 0.00018633142996862248,
   "tau_xi_s": 0.1
 }

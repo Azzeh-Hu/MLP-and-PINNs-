@@ -102,25 +102,43 @@ fem/
   core/plots.py        per-case figures
 ```
 
-## Status and open tasks
+## Status
 
-Verified so far: L0 matches the fin solution to 0.02 K; L1 reaches its target temperature
-(±0.1 K where steady); energy balance closes to ~2·10⁻⁴ of the Joule input for L0, L1 and L2;
-MMS gives second-order convergence for all levels. MMS also exposed that the L2 ξ equation
-must be enforced node by node (lumped mass); with a consistent mass matrix ξ did not converge.
+All 30 runs (2 diameters × 5 currents × 3 levels), comparison, verification and sensitivity
+completed on 18 Nov 2026 with the inputs currently in `core/params.py` (several still [TBD]).
 
-Results in `results/fem/` from before the energy/sensor-layout update use the old sensor
-file names (`sensors_N*.csv`) and lack `energy.csv`; **rerun everything with
-`./run_all.sh --verify`**, which overwrites each case folder.
+**Verification** (`verification/report.json`, `mms.json`)
+
+| Check | Result |
+|---|---|
+| L0 vs fin solution | ≤ 0.02 K (0.305 mm); ≤ 0.16 K (0.508 mm, not fully steady at 90 s) |
+| Mesh 2× in r and z / 2× in r only | 0.0007 K / 0.00002 K |
+| Time step halved | 0.13 K (backward Euler; ≈ 0.27 K error at Δt = 0.1 s) |
+| Symmetry T(z) vs T(L−z) | 5·10⁻¹¹ K |
+| L2 → L1 on heating as τ_ξ → 0 | 0.083 K (τ = 0.1 s), 0.008 K (τ = 0.01 s) |
+| Energy balance | ≤ 2·10⁻⁴ of the Joule input, every case and level |
+| MMS (L0, L1, L2; T and ξ) | observed order ≈ 1.95 (expected 2) |
+
+The largest numerical error (≈ 0.3 K, time step) is well below the phase gap.
+
+**Phase gap** (`comparison/model_errors.csv`, max |T_L0 − T_L2|): C1 0.03 K, C2 0.2 K,
+C3 7–9 K, C4 15 K, C5 16 K. L1 vs L2 differs by up to 15 K, all of it during cooling
+(L1 releases latent heat between A_s and A_f, L2 between M_s and M_f).
+
+**Sensitivity** (`sensitivity/D0305_C3_*`, L1 heating, current fixed; change in mid-span T):
+h ±20 % → −12 / +19 K; ρ_e ±5 % → ±4 K; ε 0.1–0.6 → +2 / −3 K; A_s, A_f ±5 K → ∓1 K;
+k, c_p, ΔH → < 0.2 K at steady state (c_p up to 11 K during the transient);
+local h(T) → 0.1 K. Clamp conductance 10³ / 10⁴ W/m²K instead of T = T_inf changes the
+temperature within 25 mm of the clamps by up to 49 / 17 K and leaves mid-span unchanged.
+
+## Open tasks
 
 | # | Task | Type |
 |---|---|---|
-| 1 | Run `./run_all.sh --verify` (all 30 runs, comparison, verification) | run |
-| 2 | Check `verification/report.json`: mesh/dt differences must be well below the phase gap in `comparison/model_errors.csv` | check |
-| 3 | Replace [TBD] inputs in `core/params.py`: A_s, A_f, M_s, M_f, ΔH (DSC); emissivity; confirm c_p, k, ρ_e against the current Flexinol datasheet | inputs |
-| 4 | Decide on t_off: D0508 C3/C4 do not reach steady state in 90 s (latent heat lengthens the time constant); use 150 s or define cases by reached peak | decision |
-| 5 | Sensitivity study: `sensitivity.py` written; confirm the [verify] ranges in its header | inputs |
-| 6 | Validation against published data (Debska 2017 IR profiles, Zanotti 2009 heating curves): needs the figures digitised from the PDFs | data |
-| 7 | ~~MMS test~~ done (`mms.py`) | done |
-| 8 | ~~h(T) and clamp-conductance variants~~ done (L1 options, used by `sensitivity.py`); decide whether either becomes the reference | decision |
-| 9 | State in the paper: stress-free wire, no R-phase, phase-independent k and c_p | writing |
+| 1 | DSC of the purchased wire: A_s, A_f, M_s, M_f, ΔH; replace the [TBD] values and rerun | inputs |
+| 2 | Pin down h: it dominates the uncertainty. Measure it (cooling-curve fit on the real wire) or treat h as an unknown the PINN identifies | decision |
+| 3 | Clamp condition: the clamp region (where P2 sensors sit) is controlled by the unknown clamp contact. Measure clamp temperature, or let the PINN identify a clamp conductance | decision |
+| 4 | Confirm c_p, ρ_e, ε against the current Flexinol datasheet and the [verify] ranges in `sensitivity.py` | inputs |
+| 5 | t_off: 0.508 mm C3/C4 end heating 2.3 / 1.0 K below target. Lengthen to 150 s or report as reached peak | decision |
+| 6 | Validation against published data (Debska 2017 IR profiles, Zanotti 2009): needs the figures digitised | data |
+| 7 | State in the paper: stress-free wire, no R-phase, phase-independent k and c_p | writing |

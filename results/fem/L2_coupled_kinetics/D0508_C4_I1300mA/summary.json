@@ -1,0 +1,32 @@
+{
+  "level": "L2_coupled_kinetics",
+  "case": "D0508_C4_I1300mA",
+  "regime": "at Af (completing)",
+  "D_mm": 0.508,
+  "I_A": 1.3,
+  "h_W_m2K": 48.671083969761526,
+  "T_target_C": 110.0,
+  "Bi": 0.0006868030737955237,
+  "L_b_mm": 6.853345138531933,
+  "tau_th_s": 14.083613186545566,
+  "T_mid_at_toff_C": 109.01768025531692,
+  "T_mid_max_C": 109.01768025531692,
+  "xi_mid_max": 0.987964582524266,
+  "newton_iters_total": 4388,
+  "newton_iters_max": 3,
+  "dofs": 17612,
+  "wall_time_s": 412.6,
+  "mesh": {
+    "dz_fine": 0.0001,
+    "z_fine": 0.015,
+    "dz_core": 0.0005,
+    "growth": 1.1,
+    "nr": 6
+  },
+  "dt_s": 0.1,
+  "t_off_s": 90.0,
+  "t_end_s": 180.0,
+  "energy_joule_J": 299.4491539322125,
+  "energy_error_rel": 0.0001895320290536079,
+  "tau_xi_s": 0.1
+}
